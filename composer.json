@@ -1,0 +1,47 @@
+{
+    "name": "de-swebhosting/shopware-plugin-smart-relation-sync",
+    "description": "Smart relation handling for the Sync-API",
+    "type": "shopware-platform-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "shopware/core": "~6.6.0"
+    },
+    "extra": {
+        "shopware-plugin-class": "Swh\\SmartRelationSync\\SmartRelationSync",
+        "label": {
+            "de-DE": "Smart relation Sync-API",
+            "en-GB": "Smart relation Sync-API"
+        },
+        "symfony": {
+            "docker": false
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Swh\\SmartRelationSync\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Swh\\SmartRelationSync\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/runtime": true,
+            "symfony/flex": true
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0",
+        "symfony/flex": "^2.4",
+        "shopware/dev-tools": "^1.5"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        }
+    }
+}

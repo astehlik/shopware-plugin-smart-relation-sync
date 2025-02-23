@@ -1,0 +1,21 @@
+
+services:
+###> shopware/core ###
+  database:
+    image: mysql:${MYSQL_VERSION:-8}-oracle
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-shopware}
+      # You should definitely change the password in production
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/mysql:rw
+###< shopware/core ###
+
+volumes:
+###> shopware/core ###
+  db-data:
+###< shopware/core ###
