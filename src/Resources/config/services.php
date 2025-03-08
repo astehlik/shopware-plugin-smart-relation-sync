@@ -16,14 +16,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autowire()
         ->autoconfigure(false);
 
-//    $services->load(
-//        'Swh\\SmartRelationSync\\',
-//        '../../../src/'
-//    )->exclude([
-//        'Resources',
-//        'SmartRelationSync.php',
-//    ]);
-
     $services->set(CleanupRelationsRegistry::class);
 
     $services->set(ObsoleteRelationsDeleter::class);

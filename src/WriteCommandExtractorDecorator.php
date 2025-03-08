@@ -9,6 +9,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
+use Shopware\Core\Framework\DataAbstractionLayer\Field\ReferenceVersionField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\VersionField;
 use Shopware\Core\Framework\DataAbstractionLayer\Version\VersionDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
@@ -73,6 +74,19 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         );
     }
 
+    private function filterVersionFields(array $primaryKeys, EntityDefinition $definition): array
+    {
+        $versionFields = $definition->getFields()
+            ->filter(fn(Field $field) => $field instanceof ReferenceVersionField || $field instanceof VersionField)
+            ->map(fn(Field $field) => $field->getPropertyName());
+
+        if ($versionFields === []) {
+            return $primaryKeys;
+        }
+
+        return array_diff_key($primaryKeys, array_flip($versionFields));
+    }
+
     private function getCleanupEnableFieldName(Field $field): string
     {
         return sprintf('%sCleanupRelations', $field->getPropertyName());
@@ -102,6 +116,7 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         $pk = [];
 
         $pkFields = $definition->getPrimaryKeys();
+
         foreach ($pkFields as $pkField) {
             $propertyName = $pkField->getPropertyName();
 
@@ -155,6 +170,8 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
             return;
         }
 
+        $primaryKeys = $this->filterVersionFields($primaryKeys, $definition);
+
         foreach ($definition->getFields() as $field) {
             if (
                 !$field instanceof ManyToManyAssociationField
@@ -205,6 +222,8 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
             if ($referencePrimaryKey === null) {
                 return;
             }
+
+            $referencePrimaryKey = $this->filterVersionFields($referencePrimaryKey, $reference);
 
             $cleanupRelationData->addReferencedPrimaryKey($referencePrimaryKey);
         }

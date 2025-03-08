@@ -3,114 +3,79 @@
 namespace Swh\SmartRelationSync\Tests\Functional;
 
 use PHPUnit\Framework\TestCase;
+use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Content\Product\ProductEntity;
-use Shopware\Core\Defaults;
+use Shopware\Core\Content\Test\Product\ProductBuilder;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\Pricing\Price;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Test\TestCaseBase\AdminFunctionalTestBehaviour;
-use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\Test\Stub\Framework\IdsCollection;
 
 class EntityWriteSubscriberTest extends TestCase
 {
     use AdminFunctionalTestBehaviour;
 
+    private const string PRODUCT_NUMBER = 'P384584';
+
     private Context $context;
+
+    private IdsCollection $ids;
 
     protected function setUp(): void
     {
         $this->context = Context::createDefaultContext();
+        $this->ids = new IdsCollection();
     }
 
     public function testSyncManyToMany()
     {
-        $category1Id = Uuid::fromStringToHex('category-1');
-        $category2Id = Uuid::fromStringToHex('category-2');
+        $builder = $this->createProductBuilder()
+            ->category('Test 1');
 
-        $productId = Uuid::fromStringToHex('product-1');
+        $this->upsertProductWithRelationCleanup($builder);
 
-        $this->executeUpsert('category', ['id' => $category1Id, 'name' => 'Test 1']);
-        $this->executeUpsert('category', ['id' => $category2Id, 'name' => 'Test 2']);
+        $builder = $this->createProductBuilder()
+            ->category('Test 2');
 
-        $this->createProduct($productId, ['categories' => [['id' => $category1Id]]]);
+        $this->upsertProductWithRelationCleanup($builder);
 
-        $this->executeUpsert(
-            'product',
-            [
-                'id' => $productId,
-                'categories' => [['id' => $category2Id]],
-                'categoriesCleanupRelations' => true,
-            ]
-        );
-
-        $criteria = new Criteria([$productId]);
+        $criteria = new Criteria([$this->ids->get(self::PRODUCT_NUMBER)]);
         $criteria->addAssociation('categories');
 
-        /** @var ProductEntity $product */
-        $product = $this->getContainer()->get('product.repository')->search($criteria, $this->context)->first();
+        $product = $this->searchProductSingle($criteria);
         $categories = $product->getCategories();
         self::assertCount(1, $categories);
-        self::assertSame($category2Id, $categories->first()->getId());
+        self::assertSame($this->ids->get('Test 2'), $categories->first()->getId());
     }
 
     public function testSyncOneToMany()
     {
-        $productId = Uuid::fromStringToHex('product-1');
+        $productBuilder = $this->createProductBuilder()
+            ->prices('test', 14.28);
 
-        $prices = [
-            [
-                'id' => Uuid::fromStringToHex('product-1-price-1'),
-                'quantityStart' => 1,
-                'price' => [new Price(Defaults::CURRENCY, 12.0, 14.28, true)],
-                'ruleId' => $this->getDefaultRuleId(),
-            ],
-        ];
+        $this->upsertProductWithRelationCleanup($productBuilder);
 
-        $this->createProduct($productId, ['prices' => $prices]);
+        $productBuilder = $this->createProductBuilder()
+            ->prices('test2', 115.0);
 
-        $price2Id = Uuid::fromStringToHex('product-2-price-2');
+        $this->upsertProductWithRelationCleanup($productBuilder);
 
-        $prices = [
-            [
-                'id' => $price2Id,
-                'quantityStart' => 1,
-                'price' => [new Price(Defaults::CURRENCY, 100.0, 119.0, true)],
-                'ruleId' => $this->getDefaultRuleId(),
-            ],
-        ];
-
-        $payload = [
-            'id' => $productId,
-            'prices' => $prices,
-            'pricesCleanupRelations' => true,
-        ];
-
-        $this->executeUpsert('product', $payload);
-
-        $criteria = new Criteria([$productId]);
+        $criteria = new Criteria([$this->ids->get(self::PRODUCT_NUMBER)]);
         $criteria->addAssociation('prices');
 
-        /** @var ProductEntity $product */
-        $product = $this->getContainer()->get('product.repository')->search($criteria, $this->context)->first();
+        $product = $this->searchProductSingle($criteria);
         $prices = $product->getPrices();
         self::assertCount(1, $prices);
-        self::assertSame($price2Id, $prices->first()->getId());
+        self::assertSame($this->ids->get('test2'), $prices->first()->getRuleId());
     }
 
-    private function createProduct(string $productId, array $additionalPayload): void
+    private function createProductBuilder(): ProductBuilder
     {
-        $payload = [
-            'id' => $productId,
-            'productNumber' => 'P384584',
-            'taxId' => $this->getDefaultTaxRateId(),
-            'stock' => 10,
-            'name' => 'Test product',
-            'price' => [new Price(Defaults::CURRENCY, 10.0, 11.9, true)],
-            'pricesCleanupRelations' => true,
-        ];
-
-        $this->executeUpsert('product', array_merge($payload, $additionalPayload));
+        return (new ProductBuilder($this->ids, self::PRODUCT_NUMBER))
+            ->name('Test product')
+            ->price(11.5);
     }
 
     private function executeUpsert(string $entity, array $payload): void
@@ -127,7 +92,9 @@ class EntityWriteSubscriberTest extends TestCase
             ]
         );
 
-        static::assertSame(200, $this->getBrowser()->getResponse()->getStatusCode());
+        $response = $this->getBrowser()->getResponse();
+
+        static::assertSame(200, $response->getStatusCode(), $response->getContent());
     }
 
     private function getDefaultRuleId(): string
@@ -139,12 +106,29 @@ class EntityWriteSubscriberTest extends TestCase
         return $this->getContainer()->get('rule.repository')->searchIds($criteria, $this->context)->firstId();
     }
 
-    private function getDefaultTaxRateId(): string
+    /**
+     * @return EntityRepository<ProductCollection>
+     */
+    private function getProductRepository(): EntityRepository
     {
-        $criteria = new Criteria();
-        $criteria->setLimit(1);
-        $criteria->addFilter(new EqualsFilter('position', 1));
+        /** @var EntityRepository<ProductCollection> $productRepository */
+        $productRepository = $this->getContainer()->get('product.repository');
+        assert($productRepository instanceof EntityRepository);
+        return $productRepository;
+    }
 
-        return $this->getContainer()->get('tax.repository')->searchIds($criteria, $this->context)->firstId();
+    private function searchProductSingle(Criteria $criteria): ProductEntity
+    {
+        return $this->getProductRepository()->search($criteria, $this->context)->first();
+    }
+
+    private function upsertProductWithRelationCleanup(ProductBuilder $builder): void
+    {
+        $payload = $builder->build();
+
+        $payload['pricesCleanupRelations'] = true;
+        $payload['categoriesCleanupRelations'] = true;
+
+        $this->executeUpsert('product', $payload);
     }
 }

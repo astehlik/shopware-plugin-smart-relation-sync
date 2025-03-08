@@ -17,6 +17,7 @@ class EntityWriteSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            /** @uses onPreWriteValidation() */
             PreWriteValidationEvent::class => 'onPreWriteValidation',
         ];
     }

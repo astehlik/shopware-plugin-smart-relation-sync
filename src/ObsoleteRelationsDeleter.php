@@ -23,13 +23,6 @@ readonly class ObsoleteRelationsDeleter
     ) {
     }
 
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            PreWriteValidationEvent::class => 'onPreWriteValidation',
-        ];
-    }
-
     public function deleteObsoleteRelations(Context $context, WriteContext $writeContext): void
     {
         $cleanupRelations = $this->registry->popCleanupRelations();
@@ -104,8 +97,6 @@ readonly class ObsoleteRelationsDeleter
 
     private function getMainPrimaryKey(array $primaryKey): string
     {
-        unset($primaryKey['versionId']);
-
         if (count($primaryKey) !== 1) {
             throw new RuntimeException('Primary does not consist of exactly one primary key');
         }
@@ -115,8 +106,6 @@ readonly class ObsoleteRelationsDeleter
 
     private function getMainPrimaryKeyField(array $primaryKey): string
     {
-        unset($primaryKey['versionId']);
-
         if (count($primaryKey) !== 1) {
             throw new RuntimeException('Primary does not consist of exactly one primary key');
         }

@@ -27,6 +27,8 @@ class CleanupRelationData
      */
     public function addReferencedPrimaryKey(array $primaryKey): void
     {
+        $primaryKey = array_diff_key($primaryKey, $this->parentPrimaryKeyFields);
+
         $this->referencedPrimaryKeys[] = $primaryKey;
     }
 
