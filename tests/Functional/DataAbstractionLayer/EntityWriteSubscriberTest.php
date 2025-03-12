@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync\Tests\Functional;
+namespace Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer;
 
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Content\Product\ProductCollection;
@@ -14,7 +14,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Test\TestCaseBase\AdminFunctionalTestBehaviour;
 use Shopware\Core\Test\Stub\Framework\IdsCollection;
 
-class EntityWriteSubscriberTest extends TestCase
+final class EntityWriteSubscriberTest extends TestCase
 {
     use AdminFunctionalTestBehaviour;
 

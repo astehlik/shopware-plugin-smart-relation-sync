@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Shopware\Core\Framework\Api\ApiDefinition\Generator\EntitySchemaGenerator;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
-use Swh\SmartRelationSync\CleanupRelationsRegistry;
-use Swh\SmartRelationSync\EntityWriteSubscriber;
-use Swh\SmartRelationSync\ObsoleteRelationsDeleter;
-use Swh\SmartRelationSync\WriteCommandExtractorDecorator;
+use Swh\SmartRelationSync\ApiDefinition\EntitySchemaGeneratorDecorator;
+use Swh\SmartRelationSync\DataAbstractionLayer\CleanupRelationsRegistry;
+use Swh\SmartRelationSync\DataAbstractionLayer\EntityWriteSubscriber;
+use Swh\SmartRelationSync\DataAbstractionLayer\ObsoleteRelationsDeleter;
+use Swh\SmartRelationSync\DataAbstractionLayer\WriteCommandExtractorDecorator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -28,4 +30,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(WriteCommandExtractorDecorator::class)
         ->decorate(WriteCommandExtractor::class)
         ->bind('$decorated', service('.inner'));
+
+    // Priority 10 is used to apply this decorator before the CachedEntitySchemaGenerator
+    $services->set(EntitySchemaGeneratorDecorator::class)
+        ->decorate(EntitySchemaGenerator::class, priority: 10);
 };

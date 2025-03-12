@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync;
+namespace Swh\SmartRelationSync\DataAbstractionLayer;
 
 use Symfony\Contracts\Service\ResetInterface;
 
-class CleanupRelationsRegistry implements ResetInterface
+final class CleanupRelationsRegistry implements ResetInterface
 {
     /**
      * @var CleanupRelationData[]

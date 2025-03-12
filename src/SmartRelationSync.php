@@ -6,4 +6,4 @@ namespace Swh\SmartRelationSync;
 
 use Shopware\Core\Framework\Plugin;
 
-class SmartRelationSync extends Plugin {}
+final class SmartRelationSync extends Plugin {}

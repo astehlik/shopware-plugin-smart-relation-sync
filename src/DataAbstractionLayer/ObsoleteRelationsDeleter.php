@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync;
+namespace Swh\SmartRelationSync\DataAbstractionLayer;
 
 use RuntimeException;
 use Shopware\Core\Framework\Api\Sync\SyncOperation;
@@ -15,7 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriter;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteContext;
 
-readonly class ObsoleteRelationsDeleter
+final readonly class ObsoleteRelationsDeleter
 {
     public function __construct(
         private EntityWriter $entityWriter,

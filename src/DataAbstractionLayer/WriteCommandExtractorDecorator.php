@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync;
+namespace Swh\SmartRelationSync\DataAbstractionLayer;
 
 use RuntimeException;
 use Shopware\Core\Framework\DataAbstractionLayer\CompiledFieldCollection;
@@ -18,13 +18,27 @@ use Shopware\Core\Framework\DataAbstractionLayer\Version\VersionDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteParameterBag;
 
-class WriteCommandExtractorDecorator extends WriteCommandExtractor
+final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 {
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct(
         private readonly CleanupRelationsRegistry $cleanupRelationsRegistry,
         private readonly WriteCommandExtractor $decorated,
     ) {}
+
+    public static function getCleanupEnableFieldName(Field $field): string
+    {
+        return sprintf('%sCleanupRelations', $field->getPropertyName());
+    }
+
+    /**
+     * @phpstan-assert-if-true ManyToManyAssociationField|OneToManyAssociationField $field
+     */
+    public static function isRelevantField(Field $field): bool
+    {
+        return $field instanceof ManyToManyAssociationField
+            || $field instanceof OneToManyAssociationField;
+    }
 
     /**
      * @param array<mixed, mixed> $rawData
@@ -73,7 +87,10 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
     ): CleanupRelationData {
         $reference = $field->getReferenceDefinition();
 
-        $fkPropertyName = $this->getForeignKeyPropertyNameByStorageName($reference->getFields(), $field->getReferenceField());
+        $fkPropertyName = $this->getForeignKeyPropertyNameByStorageName(
+            $reference->getFields(),
+            $field->getReferenceField(),
+        );
 
         return new CleanupRelationData(
             $reference,
@@ -103,17 +120,12 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
         $primaryKeysWithoutVersionFields = array_diff_key($primaryKeys, array_flip($versionFields));
 
-        \assert(
+        assert(
             count($primaryKeysWithoutVersionFields) > 0,
             'No primary keys remained after removing the version fields.',
         );
 
         return $primaryKeysWithoutVersionFields;
-    }
-
-    private function getCleanupEnableFieldName(Field $field): string
-    {
-        return sprintf('%sCleanupRelations', $field->getPropertyName());
     }
 
     /**
@@ -125,14 +137,14 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
     ) {
         $fk = $fields->getByStorageName($storageName);
 
-        \assert(
+        assert(
             $fk !== null,
             'Could not find foreign key field by storage name ' . $storageName,
         );
 
         $fkPropertyName = $fk->getPropertyName();
 
-        \assert($fkPropertyName !== '', 'Foreign key property name was empty');
+        assert($fkPropertyName !== '', 'Foreign key property name was empty');
 
         return $fkPropertyName;
     }
@@ -144,7 +156,7 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         $associations = $referencedDefinition->getFields()->filterInstance(ManyToOneAssociationField::class);
 
         foreach ($associations as $association) {
-            \assert($association instanceof ManyToOneAssociationField);
+            assert($association instanceof ManyToOneAssociationField);
             if ($association->getStorageName() === $field->getMappingReferenceColumn()) {
                 return $association;
             }
@@ -235,10 +247,7 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         $primaryKeys = $this->filterVersionFields($primaryKeys, $definition);
 
         foreach ($definition->getFields() as $field) {
-            if (
-                !$field instanceof ManyToManyAssociationField
-                && !$field instanceof OneToManyAssociationField
-            ) {
+            if (!self::isRelevantField($field)) {
                 continue;
             }
 

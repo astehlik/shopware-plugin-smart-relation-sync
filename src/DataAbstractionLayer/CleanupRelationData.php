@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync;
+namespace Swh\SmartRelationSync\DataAbstractionLayer;
 
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 
-class CleanupRelationData
+final class CleanupRelationData
 {
     /**
      * @var non-empty-array<non-empty-string, non-empty-string>[]

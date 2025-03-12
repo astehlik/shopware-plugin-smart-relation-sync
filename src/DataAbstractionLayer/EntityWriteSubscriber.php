@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Swh\SmartRelationSync;
+namespace Swh\SmartRelationSync\DataAbstractionLayer;
 
 use Shopware\Core\Framework\DataAbstractionLayer\Write\Validation\PreWriteValidationEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class EntityWriteSubscriber implements EventSubscriberInterface
+final class EntityWriteSubscriber implements EventSubscriberInterface
 {
     private bool $inSubscriber = false;
 
