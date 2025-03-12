@@ -2,10 +2,13 @@
 /.env.local
 /.env.local.php
 /.env.*.local
+/.php-cs-fixer.cache
 /config/secrets/prod/prod.decrypt.private.php
+/node_modules
 /public/bundles/
 /var/
 /vendor/
+/composer.lock
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###

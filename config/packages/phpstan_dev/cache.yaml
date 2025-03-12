@@ -1,0 +1,11 @@
+framework:
+    cache:
+        app: cache.adapter.array
+        system: cache.adapter.array
+        pools:
+            cache.object:
+                tags: phpstan_dev_tag_pool
+            cache.http:
+                tags: phpstan_dev_tag_pool
+            phpstan_dev_tag_pool:
+                adapter: cache.adapter.array

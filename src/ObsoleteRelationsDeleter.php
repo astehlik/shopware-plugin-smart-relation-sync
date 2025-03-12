@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync;
 
 use RuntimeException;
@@ -11,7 +13,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriter;
-use Shopware\Core\Framework\DataAbstractionLayer\Write\Validation\PreWriteValidationEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteContext;
 
 readonly class ObsoleteRelationsDeleter
@@ -20,8 +21,7 @@ readonly class ObsoleteRelationsDeleter
         private EntityWriter $entityWriter,
         private CleanupRelationsRegistry $registry,
         private DefinitionInstanceRegistry $definitionInstanceRegistry,
-    ) {
-    }
+    ) {}
 
     public function deleteObsoleteRelations(Context $context, WriteContext $writeContext): void
     {
@@ -53,11 +53,11 @@ readonly class ObsoleteRelationsDeleter
         $deleteOperations = [];
 
         foreach ($deleteCommands as $key => $deleteCommand) {
-            $deleteOperations[$key] = new SyncOperation(
+            $deleteOperations[] = new SyncOperation(
                 $key,
                 $deleteCommand['entity'],
                 'delete',
-                $deleteCommand['payload']
+                $deleteCommand['payload'],
             );
         }
 
@@ -68,6 +68,9 @@ readonly class ObsoleteRelationsDeleter
         $this->entityWriter->sync($deleteOperations, $writeContext);
     }
 
+    /**
+     * @return list<array<string,string>>|list<string>
+     */
     private function getDeletePrimaryKeys(CleanupRelationData $cleanupRelation, Context $context): array
     {
         $repository = $this->definitionInstanceRegistry->getRepository($cleanupRelation->definition->getEntityName());
@@ -79,7 +82,7 @@ readonly class ObsoleteRelationsDeleter
         foreach ($cleanupRelation->getReferencedPrimaryKeys() as $referencedPrimaryKey) {
             $existingIdFilters[] = new EqualsFilter(
                 $referencedPrimaryKeyField,
-                $this->getMainPrimaryKey($referencedPrimaryKey)
+                $this->getMainPrimaryKey($referencedPrimaryKey),
             );
         }
 
@@ -87,14 +90,17 @@ readonly class ObsoleteRelationsDeleter
         $criteria->addFilter(
             new EqualsFilter(
                 $this->getMainPrimaryKeyField($cleanupRelation->parentPrimaryKeyFields),
-                $this->getMainPrimaryKey($cleanupRelation->parentPrimaryKey)
-            )
+                $this->getMainPrimaryKey($cleanupRelation->parentPrimaryKey),
+            ),
         );
         $criteria->addFilter(new NotFilter(MultiFilter::CONNECTION_AND, $existingIdFilters));
 
         return $repository->searchIds($criteria, $context)->getIds();
     }
 
+    /**
+     * @param non-empty-array<non-empty-string, non-empty-string> $primaryKey
+     */
     private function getMainPrimaryKey(array $primaryKey): string
     {
         if (count($primaryKey) !== 1) {
@@ -104,6 +110,11 @@ readonly class ObsoleteRelationsDeleter
         return reset($primaryKey);
     }
 
+    /**
+     * @param array<non-empty-string, true> $primaryKey
+     *
+     * @return non-empty-string
+     */
     private function getMainPrimaryKeyField(array $primaryKey): string
     {
         if (count($primaryKey) !== 1) {

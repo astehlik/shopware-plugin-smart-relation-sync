@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync;
 
 use Symfony\Contracts\Service\ResetInterface;

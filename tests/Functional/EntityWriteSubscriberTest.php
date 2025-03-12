@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync\Tests\Functional;
 
 use PHPUnit\Framework\TestCase;
@@ -9,7 +11,6 @@ use Shopware\Core\Content\Test\Product\ProductBuilder;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Test\TestCaseBase\AdminFunctionalTestBehaviour;
 use Shopware\Core\Test\Stub\Framework\IdsCollection;
 
@@ -29,7 +30,7 @@ class EntityWriteSubscriberTest extends TestCase
         $this->ids = new IdsCollection();
     }
 
-    public function testSyncManyToMany()
+    public function testSyncManyToMany(): void
     {
         $builder = $this->createProductBuilder()
             ->category('Test 1');
@@ -46,11 +47,11 @@ class EntityWriteSubscriberTest extends TestCase
 
         $product = $this->searchProductSingle($criteria);
         $categories = $product->getCategories();
-        self::assertCount(1, $categories);
-        self::assertSame($this->ids->get('Test 2'), $categories->first()->getId());
+        self::assertCount(1, $categories ?? []);
+        self::assertSame($this->ids->get('Test 2'), $categories?->first()?->getId());
     }
 
-    public function testSyncOneToMany()
+    public function testSyncOneToMany(): void
     {
         $productBuilder = $this->createProductBuilder()
             ->prices('test', 14.28);
@@ -67,8 +68,8 @@ class EntityWriteSubscriberTest extends TestCase
 
         $product = $this->searchProductSingle($criteria);
         $prices = $product->getPrices();
-        self::assertCount(1, $prices);
-        self::assertSame($this->ids->get('test2'), $prices->first()->getRuleId());
+        self::assertCount(1, $prices ?? []);
+        self::assertSame($this->ids->get('test2'), $prices?->first()?->getRuleId());
     }
 
     private function createProductBuilder(): ProductBuilder
@@ -78,6 +79,9 @@ class EntityWriteSubscriberTest extends TestCase
             ->price(11.5);
     }
 
+    /**
+     * @param array<mixed> $payload
+     */
     private function executeUpsert(string $entity, array $payload): void
     {
         $this->getBrowser()->jsonRequest(
@@ -89,21 +93,12 @@ class EntityWriteSubscriberTest extends TestCase
                     'action' => 'upsert',
                     'payload' => [$payload],
                 ],
-            ]
+            ],
         );
 
         $response = $this->getBrowser()->getResponse();
 
-        static::assertSame(200, $response->getStatusCode(), $response->getContent());
-    }
-
-    private function getDefaultRuleId(): string
-    {
-        $criteria = new Criteria();
-        $criteria->setLimit(1);
-        $criteria->addFilter(new EqualsFilter('name', 'All customers'));
-
-        return $this->getContainer()->get('rule.repository')->searchIds($criteria, $this->context)->firstId();
+        self::assertSame(200, $response->getStatusCode(), $response->getContent() ?: '');
     }
 
     /**
@@ -119,7 +114,11 @@ class EntityWriteSubscriberTest extends TestCase
 
     private function searchProductSingle(Criteria $criteria): ProductEntity
     {
-        return $this->getProductRepository()->search($criteria, $this->context)->first();
+        $product = $this->getProductRepository()->search($criteria, $this->context)->first();
+
+        self::assertInstanceOf(ProductEntity::class, $product);
+
+        return $product;
     }
 
     private function upsertProductWithRelationCleanup(ProductBuilder $builder): void

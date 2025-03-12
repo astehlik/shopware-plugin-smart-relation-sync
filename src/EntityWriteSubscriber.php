@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync;
 
 use Shopware\Core\Framework\DataAbstractionLayer\Write\Validation\PreWriteValidationEvent;
@@ -11,8 +13,7 @@ class EntityWriteSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private readonly ObsoleteRelationsDeleter $obsoleteRelationsDeleter,
-    ) {
-    }
+    ) {}
 
     public static function getSubscribedEvents(): array
     {

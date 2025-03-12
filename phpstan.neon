@@ -1,0 +1,54 @@
+# Config based on https://github.com/shopware/shopware/blob/trunk/phpstan.neon.dist
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    # Based on vendor/shopware/core/DevOps/StaticAnalyze/PHPStan/extension.neon
+    - tests/StaticAnalyze/PHPStan/phpstan-shopware-extension.neon
+    - vendor/shopware/core/DevOps/StaticAnalyze/PHPStan/rules.neon
+    # Based on vendor/shopware/core/DevOps/StaticAnalyze/PHPStan/core-rules.neon
+    - tests/StaticAnalyze/PHPStan/phpstan-shopware-core-rules.neon
+    - tests/StaticAnalyze/PHPStan/phpstan-baseline.neon
+
+parameters:
+    level: 9
+    treatPhpDocTypesAsCertain: false
+    inferPrivatePropertyTypeFromConstructor: true
+    reportUnmatchedIgnoredErrors: true # Could be set to false if necessary during PHPStan update
+    tmpDir: var/cache/phpstan
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/Resources
+    bootstrapFiles:
+        - vendor/shopware/core/DevOps/StaticAnalyze/phpstan-bootstrap.php
+    # run `php src/Core/DevOps/StaticAnalyze/phpstan-bootstrap.php` to create the container
+    symfony:
+        constantHassers: false
+        containerXmlPath: 'var/cache/static_phpstan_dev/Shopware_Core_DevOps_StaticAnalyze_StaticAnalyzeKernelPhpstan_devDebugContainer.xml'
+        consoleApplicationLoader: tests/StaticAnalyze/PHPStan/console-application.php
+    type_perfect:
+        no_mixed: true
+
+services:
+    - # register the class, so we can decorate it, but don't tag it as a rule, so only our decorator is used by PHPStan
+        class: Symplify\PHPStanRules\Rules\NoReturnSetterMethodRule
+
+rules:
+    # rules from https://github.com/symplify/phpstan-rules
+    # domain
+    - Symplify\PHPStanRules\Rules\Enum\RequireUniqueEnumConstantRule
+    - Symplify\PHPStanRules\Rules\PreventParentMethodVisibilityOverrideRule
+
+    # explicit naming
+    - Symplify\PHPStanRules\Rules\ForbiddenMultipleClassLikeInOneFileRule
+
+    - Symplify\PHPStanRules\Rules\Complexity\ForbiddenArrayMethodCallRule
+
+    # complexity rules
+    - Symplify\PHPStanRules\Rules\NoDynamicNameRule
+
+    # naming rules
+    - Shopware\Core\DevOps\StaticAnalyze\PHPStan\Rules\Symplify\NoReturnSetterMethodWithFluentSettersRule
+    - Symplify\PHPStanRules\Rules\UppercaseConstantRule
+    #- Symplify\PHPStanRules\Rules\CheckClassNamespaceFollowPsr4Rule
+    #- Shopware\Core\DevOps\StaticAnalyze\PHPStan\Rules\ShopwareNamespaceStyleRule

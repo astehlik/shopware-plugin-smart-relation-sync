@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync;
 
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
@@ -13,14 +15,15 @@ class CleanupRelationData
 
     /**
      * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
+     * @param array<non-empty-string, true> $parentPrimaryKeyFields
+     * @param array<non-empty-string, true> $relatedPrimaryKeyFields
      */
     public function __construct(
         readonly public EntityDefinition $definition,
         readonly public array $parentPrimaryKey,
         readonly public array $parentPrimaryKeyFields,
         readonly public array $relatedPrimaryKeyFields,
-    ) {
-    }
+    ) {}
 
     /**
      * @param non-empty-array<non-empty-string, non-empty-string> $primaryKey
@@ -28,6 +31,10 @@ class CleanupRelationData
     public function addReferencedPrimaryKey(array $primaryKey): void
     {
         $primaryKey = array_diff_key($primaryKey, $this->parentPrimaryKeyFields);
+
+        if ($primaryKey === []) {
+            return;
+        }
 
         $this->referencedPrimaryKeys[] = $primaryKey;
     }

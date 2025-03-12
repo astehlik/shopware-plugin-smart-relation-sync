@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Swh\SmartRelationSync;
 
 use RuntimeException;
+use Shopware\Core\Framework\DataAbstractionLayer\CompiledFieldCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Field;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
@@ -15,17 +18,17 @@ use Shopware\Core\Framework\DataAbstractionLayer\Version\VersionDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteParameterBag;
 
-use function assert;
-
 class WriteCommandExtractorDecorator extends WriteCommandExtractor
 {
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct(
         private readonly CleanupRelationsRegistry $cleanupRelationsRegistry,
         private readonly WriteCommandExtractor $decorated,
-    ) {
-    }
+    ) {}
 
+    /**
+     * @param array<mixed, mixed> $rawData
+     */
     public function extract(array $rawData, WriteParameterBag $parameters): array
     {
         $this->registerRelations($rawData, $parameters);
@@ -33,58 +36,79 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         return $this->decorated->extract($rawData, $parameters);
     }
 
+    /**
+     * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
+     */
     private function buildCleanupDataForManyToManyAssociation(
         ManyToManyAssociationField $field,
-        array $parentPrimaryKey
+        array $parentPrimaryKey,
     ): CleanupRelationData {
         $reference = $field->getReferenceDefinition();
 
         $mappingAssociation = $this->getMappingAssociation($reference, $field);
 
-        $fk = $reference->getFields()->getByStorageName(
-            $mappingAssociation->getStorageName()
-        );
+        $storageName = $mappingAssociation->getStorageName();
+
+        $fkPropertyName = $this->getForeignKeyPropertyNameByStorageName($reference->getFields(), $storageName);
 
         $referencedDefinition = $field->getMappingDefinition();
 
         $primaryKeyFields = $this->getPrimaryKeyFields($referencedDefinition);
-        unset($primaryKeyFields[$fk->getPropertyName()]);
+        unset($primaryKeyFields[$fkPropertyName]);
 
         return new CleanupRelationData(
             $reference,
             $parentPrimaryKey,
             $primaryKeyFields,
-            [$fk->getPropertyName() => true],
+            [$fkPropertyName => true],
         );
     }
 
+    /**
+     * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
+     */
     private function buildCleanupDataForOneToManyAssociation(
         OneToManyAssociationField $field,
-        array $parentPrimaryKey
+        array $parentPrimaryKey,
     ): CleanupRelationData {
         $reference = $field->getReferenceDefinition();
 
-        $fkField = $reference->getFields()->getByStorageName($field->getReferenceField());
+        $fkPropertyName = $this->getForeignKeyPropertyNameByStorageName($reference->getFields(), $field->getReferenceField());
 
         return new CleanupRelationData(
             $reference,
             $parentPrimaryKey,
-            [$fkField->getPropertyName() => true],
-            $this->getPrimaryKeyFields($reference)
+            [$fkPropertyName => true],
+            $this->getPrimaryKeyFields($reference),
         );
     }
 
+    /**
+     * @param non-empty-array<non-empty-string, non-empty-string> $primaryKeys
+     *
+     * @return non-empty-array<non-empty-string, non-empty-string>
+     */
     private function filterVersionFields(array $primaryKeys, EntityDefinition $definition): array
     {
+        /** @var array<int, string> $versionFields */
         $versionFields = $definition->getFields()
-            ->filter(fn(Field $field) => $field instanceof ReferenceVersionField || $field instanceof VersionField)
-            ->map(fn(Field $field) => $field->getPropertyName());
+            ->filter(
+                static fn(Field $field) => $field instanceof ReferenceVersionField || $field instanceof VersionField,
+            )
+            ->map(static fn(Field $field): string => $field->getPropertyName());
 
         if ($versionFields === []) {
             return $primaryKeys;
         }
 
-        return array_diff_key($primaryKeys, array_flip($versionFields));
+        $primaryKeysWithoutVersionFields = array_diff_key($primaryKeys, array_flip($versionFields));
+
+        \assert(
+            count($primaryKeysWithoutVersionFields) > 0,
+            'No primary keys remained after removing the version fields.',
+        );
+
+        return $primaryKeysWithoutVersionFields;
     }
 
     private function getCleanupEnableFieldName(Field $field): string
@@ -92,14 +116,35 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         return sprintf('%sCleanupRelations', $field->getPropertyName());
     }
 
+    /**
+     * @return non-empty-string
+     */
+    private function getForeignKeyPropertyNameByStorageName(
+        CompiledFieldCollection $fields,
+        string $storageName,
+    ) {
+        $fk = $fields->getByStorageName($storageName);
+
+        \assert(
+            $fk !== null,
+            'Could not find foreign key field by storage name ' . $storageName,
+        );
+
+        $fkPropertyName = $fk->getPropertyName();
+
+        \assert($fkPropertyName !== '', 'Foreign key property name was empty');
+
+        return $fkPropertyName;
+    }
+
     private function getMappingAssociation(
         EntityDefinition $referencedDefinition,
-        ManyToManyAssociationField $field
+        ManyToManyAssociationField $field,
     ): ManyToOneAssociationField {
         $associations = $referencedDefinition->getFields()->filterInstance(ManyToOneAssociationField::class);
 
         foreach ($associations as $association) {
-            assert($association instanceof ManyToOneAssociationField);
+            \assert($association instanceof ManyToOneAssociationField);
             if ($association->getStorageName() === $field->getMappingReferenceColumn()) {
                 return $association;
             }
@@ -109,6 +154,8 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
     }
 
     /**
+     * @param array<mixed, mixed> $rawData
+     *
      * @return non-empty-array<non-empty-string, non-empty-string>|null
      */
     private function getPrimaryKey(array $rawData, EntityDefinition $definition): ?array
@@ -119,6 +166,10 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
         foreach ($pkFields as $pkField) {
             $propertyName = $pkField->getPropertyName();
+
+            if ($propertyName === '') {
+                return null;
+            }
 
             $value = $rawData[$propertyName] ?? null;
 
@@ -136,6 +187,9 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         return $pk;
     }
 
+    /**
+     * @return array<non-empty-string, true>
+     */
     private function getPrimaryKeyFields(EntityDefinition $reference): array
     {
         $fields = [];
@@ -149,12 +203,20 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
             }
 
             $propertyName = $primaryKey->getPropertyName();
+
+            if ($propertyName === '') {
+                throw new RuntimeException('Primary property name is empty!');
+            }
+
             $fields[$propertyName] = true;
         }
 
         return $fields;
     }
 
+    /**
+     * @param array<mixed, mixed> $rawData
+     */
     private function registerRelations(array $rawData, WriteParameterBag $parameters): void
     {
         $definition = $parameters->getDefinition();
@@ -204,10 +266,14 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         }
     }
 
+    /**
+     * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
+     * @param non-empty-array<mixed, mixed> $fieldData
+     */
     private function registerRelationsForField(
         ManyToManyAssociationField|OneToManyAssociationField $field,
         array $parentPrimaryKey,
-        array $fieldData
+        array $fieldData,
     ): void {
         $reference = $field->getReferenceDefinition();
 
@@ -217,6 +283,10 @@ class WriteCommandExtractorDecorator extends WriteCommandExtractor
         };
 
         foreach ($fieldData as $referenceData) {
+            if (!is_array($referenceData)) {
+                continue;
+            }
+
             $referencePrimaryKey = $this->getPrimaryKey($referenceData, $reference);
 
             if ($referencePrimaryKey === null) {

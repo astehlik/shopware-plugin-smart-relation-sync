@@ -1,0 +1,10 @@
+{
+    "name": "smartrelationsync",
+    "scripts": {
+        "lint-prettier": "prettier --check .",
+        "lint-prettier-fix": "prettier --write ."
+    },
+    "dependencies": {
+        "prettier": "^3.5.3"
+    }
+}
