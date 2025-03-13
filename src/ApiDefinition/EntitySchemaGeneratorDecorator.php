@@ -51,7 +51,6 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 
             $entityProperties = $schema[$entity]['properties'];
 
-            /** @var array<int, ManyToManyAssociationField|OneToManyAssociationField> $relevantFields */
             $relevantFields = $definition->getFields()
                 ->filter(fn(Field $field) => $this->isRelevantField($field));
 

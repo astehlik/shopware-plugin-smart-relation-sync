@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use Shopware\Core\Framework\Api\ApiDefinition\Generator\EntitySchemaGenerator;
+use Shopware\Core\Framework\Api\ApiDefinition\Generator\OpenApi\OpenApiDefinitionSchemaBuilder;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
 use Swh\SmartRelationSync\ApiDefinition\EntitySchemaGeneratorDecorator;
+use Swh\SmartRelationSync\ApiDefinition\OpenApiDefinitionSchemaBuilderDecorator;
 use Swh\SmartRelationSync\DataAbstractionLayer\CleanupRelationsRegistry;
 use Swh\SmartRelationSync\DataAbstractionLayer\EntityWriteSubscriber;
 use Swh\SmartRelationSync\DataAbstractionLayer\ObsoleteRelationsDeleter;
@@ -34,4 +36,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     // Priority 10 is used to apply this decorator before the CachedEntitySchemaGenerator
     $services->set(EntitySchemaGeneratorDecorator::class)
         ->decorate(EntitySchemaGenerator::class, priority: 10);
+
+    $services->set(OpenApiDefinitionSchemaBuilderDecorator::class)
+        ->decorate(OpenApiDefinitionSchemaBuilder::class);
 };
