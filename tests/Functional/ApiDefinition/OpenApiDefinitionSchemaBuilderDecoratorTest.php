@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Swh\SmartRelationSync\Tests\Functional\ApiDefinition;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Shopware\Core\Framework\Api\ApiDefinition\DefinitionService;
 use Shopware\Core\Framework\Test\TestCaseBase\AdminFunctionalTestBehaviour;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -12,11 +14,23 @@ class OpenApiDefinitionSchemaBuilderDecoratorTest extends TestCase
 {
     use AdminFunctionalTestBehaviour;
 
-    public function testApiSchemaReturnsExpectedProperties(): void
+    /**
+     * @return non-empty-array<non-empty-string>[]
+     */
+    public static function provideOpenApiTypes(): array
+    {
+        return [
+            [DefinitionService::TYPE_JSON],
+            [DefinitionService::TYPE_JSON_API],
+        ];
+    }
+
+    #[DataProvider('provideOpenApiTypes')]
+    public function testApiSchemaReturnsExpectedProperties(string $type): void
     {
         $this->getBrowser()->jsonRequest(
             'GET',
-            '/api/_info/openapi3.json?type=json',
+            '/api/_info/openapi3.json?type=' . $type,
         );
 
         $response = $this->getBrowser()->getResponse();

@@ -17,9 +17,19 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\Flag\IgnoreInOpenapiSchem
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
 use Swh\SmartRelationSync\DataAbstractionLayer\WriteCommandExtractorDecorator;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBuilder
 {
+    private readonly CamelCaseToSnakeCaseNameConverter $converter;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->converter = new CamelCaseToSnakeCaseNameConverter(null, false);
+    }
+
     /**
      * @return Schema[]
      */
@@ -32,14 +42,14 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
     ): array {
         $schemas = parent::getSchemaByDefinition($definition, $path, $forSalesChannel, $onlyFlat, $apiType);
 
-        if (count($schemas) !== 1) {
+        $relevantSchemas = $this->getRelevantSchemas($schemas, $definition);
+
+        if (count($relevantSchemas) === 0) {
             return $schemas;
         }
 
         $relevantFields = $definition->getFields()
             ->filter(fn(Field $field) => $this->isRelevantField($field));
-
-        $schema = current($schemas);
 
         foreach ($relevantFields as $field) {
             if (!$this->shouldFieldBeIncluded($field, $forSalesChannel)) {
@@ -53,10 +63,44 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
                 'type' => 'boolean',
             ]);
 
-            $schema->properties[] = $property;
+            foreach ($relevantSchemas as $schema) {
+                $schema->properties[] = $property;
+            }
         }
 
         return $schemas;
+    }
+
+    /**
+     * @param Schema[] $schemas
+     *
+     * @return Schema[]
+     */
+    private function getRelevantSchemas(array $schemas, EntityDefinition $definition): array
+    {
+        $schemaName = $this->snakeCaseToCamelCase($definition->getEntityName());
+
+        if (!array_key_exists($schemaName, $schemas)) {
+            return [];
+        }
+
+        $relevantSchemas = [$schemas[$schemaName]];
+
+        $schemaNameJsonApi = $schemaName . 'JsonApi';
+
+        if (!array_key_exists($schemaNameJsonApi, $schemas)) {
+            return $relevantSchemas;
+        }
+
+        $jsonApiSchema = $schemas[$schemaNameJsonApi];
+
+        $childSchema = $jsonApiSchema->allOf[1] ?? null;
+
+        if ($childSchema instanceof Schema) {
+            $relevantSchemas[] = $childSchema;
+        }
+
+        return $relevantSchemas;
     }
 
     /**
@@ -90,5 +134,10 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         }
 
         return true;
+    }
+
+    private function snakeCaseToCamelCase(string $input): string
+    {
+        return $this->converter->denormalize($input);
     }
 }
