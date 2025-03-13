@@ -3,7 +3,6 @@
     "description": "Smart relation handling for the Sync-API",
     "license": "MIT",
     "type": "shopware-platform-plugin",
-    "version": "1.0.0",
     "require": {
         "shopware/core": "~6.6.0"
     },
