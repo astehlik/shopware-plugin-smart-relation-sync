@@ -1,5 +1,5 @@
 {
-    "name": "de-swebhosting/shopware-plugin-smart-relation-sync",
+    "name": "de-swebhosting-shopware-plugin/smart-relation-sync",
     "description": "Smart relation handling for the Sync-API",
     "license": "MIT",
     "type": "shopware-platform-plugin",
