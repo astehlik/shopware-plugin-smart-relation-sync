@@ -8,6 +8,7 @@ use RuntimeException;
 use Shopware\Core\Framework\Api\ApiDefinition\ApiDefinitionGeneratorInterface;
 use Shopware\Core\Framework\Api\ApiDefinition\DefinitionService;
 use Shopware\Core\Framework\Api\ApiDefinition\Generator\EntitySchemaGenerator;
+use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Field;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
@@ -22,6 +23,16 @@ use Swh\SmartRelationSync\DataAbstractionLayer\WriteCommandExtractorDecorator;
  */
 final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 {
+    private const array CLEANUP_PROPERTY_DEFINITION = [
+        'type' => 'boolean',
+        'flags' => [
+            // Reading is never allowed, the field is not returned by the API
+            'read_protected' => [],
+            // Writing is only allowed in the admin API context.
+            'write_protected' => [AdminApiSource::class],
+        ],
+    ];
+
     public function __construct(private ApiDefinitionGeneratorInterface $decorated) {}
 
     public function generate(
@@ -61,7 +72,7 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 
                 $fieldName = WriteCommandExtractorDecorator::getCleanupEnableFieldName($field);
 
-                $entityProperties[$fieldName] = ['type' => 'boolean'];
+                $entityProperties[$fieldName] = self::CLEANUP_PROPERTY_DEFINITION;
             }
 
             $schema[$entity]['properties'] = $entityProperties;

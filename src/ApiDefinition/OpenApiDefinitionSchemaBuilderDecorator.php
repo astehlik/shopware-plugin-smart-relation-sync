@@ -42,6 +42,10 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
     ): array {
         $schemas = parent::getSchemaByDefinition($definition, $path, $forSalesChannel, $onlyFlat, $apiType);
 
+        if ($forSalesChannel) {
+            return $schemas;
+        }
+
         $relevantSchemas = $this->getRelevantSchemas($schemas, $definition);
 
         if (count($relevantSchemas) === 0) {
@@ -61,6 +65,7 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
             $property = new Property([
                 'property' => $enableFieldName,
                 'type' => 'boolean',
+                'writeOnly' => true,
             ]);
 
             foreach ($relevantSchemas as $schema) {
