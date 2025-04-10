@@ -267,7 +267,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
             $fieldData = $rawData[$field->getPropertyName()] ?? null;
 
-            if (!is_array($fieldData) || empty($fieldData)) {
+            if (!is_array($fieldData)) {
                 continue;
             }
 
@@ -277,7 +277,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
     /**
      * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
-     * @param non-empty-array<mixed, mixed> $fieldData
+     * @param array<mixed, mixed> $fieldData
      */
     private function registerRelationsForField(
         ManyToManyAssociationField|OneToManyAssociationField $field,
