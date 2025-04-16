@@ -80,6 +80,12 @@
             "php tests/StaticAnalyze/PHPStan/console-application.php"
         ],
         "lint-prettier": "npm run lint-prettier",
-        "lint-prettier-fix": "npm run lint-prettier-fix"
+        "lint-prettier-fix": "npm run lint-prettier-fix",
+        "phpunit": "@php vendor/bin/phpunit",
+        "phpunit-html": [
+            "rm public/tests -rf",
+            "@php vendor/bin/phpunit --coverage-html public/tests"
+        ],
+        "phpunit-report": "@php -dpcov.enabled=1 vendor/bin/phpunit --coverage-html public/tests --coverage-clover reports/coverage.clover.xml --coverage-text --colors=always --testdox"
     }
 }
