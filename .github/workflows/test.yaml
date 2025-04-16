@@ -28,10 +28,10 @@ jobs:
               with:
                   additional-extensions: ',pcov'
 
+            - run: cp .env.ci .env.test.local
+
             - name: Run tests
               run: composer run phpunit-report
-              env:
-                  DATABASE_URL: 'mysql://root:root@127.0.0.1/shopware'
 
             - name: Upload test results
               if: success() || failure() # always run even if the previous step fails
