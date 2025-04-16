@@ -1,6 +1,9 @@
-name: Pull Requests
+name: Lint & Test
 
 on:
+    push:
+        branches:
+            - main
     pull_request:
     workflow_dispatch:
 
@@ -10,7 +13,7 @@ jobs:
         permissions:
             contents: read
             packages: read
-        uses: ./.github/workflows/lint.yaml
+        uses: ./.github/workflows/_lint.yaml
 
     test:
         name: Test
@@ -19,5 +22,5 @@ jobs:
             checks: write
             pull-requests: write
             statuses: write
-        uses: ./.github/workflows/test.yaml
+        uses: ./.github/workflows/_test.yaml
         secrets: inherit
