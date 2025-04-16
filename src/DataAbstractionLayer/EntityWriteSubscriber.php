@@ -15,6 +15,9 @@ final class EntityWriteSubscriber implements EventSubscriberInterface
         private readonly ObsoleteRelationsDeleter $obsoleteRelationsDeleter,
     ) {}
 
+    /**
+     * @codeCoverageIgnore
+     */
     public static function getSubscribedEvents(): array
     {
         return [

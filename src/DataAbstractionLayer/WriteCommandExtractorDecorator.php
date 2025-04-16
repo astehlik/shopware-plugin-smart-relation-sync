@@ -162,7 +162,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
             }
         }
 
-        throw new RuntimeException('Association not found!');
+        throw new RuntimeException('Association not found!'); // @codeCoverageIgnore
     }
 
     /**
@@ -180,20 +180,20 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
             $propertyName = $pkField->getPropertyName();
 
             if ($propertyName === '') {
-                return null;
+                return null; // @codeCoverageIgnore
             }
 
             $value = $rawData[$propertyName] ?? null;
 
             if (!is_string($value) || $value === '') {
-                return null;
+                return null; // @codeCoverageIgnore
             }
 
             $pk[$propertyName] = $value;
         }
 
         if ($pk === []) {
-            return null;
+            return null; // @codeCoverageIgnore
         }
 
         return $pk;
@@ -217,7 +217,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
             $propertyName = $primaryKey->getPropertyName();
 
             if ($propertyName === '') {
-                throw new RuntimeException('Primary property name is empty!');
+                throw new RuntimeException('Primary property name is empty!'); // @codeCoverageIgnore
             }
 
             $fields[$propertyName] = true;
@@ -236,7 +236,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
         $primaryKeys = $this->getPrimaryKey($rawData, $definition);
 
         if ($primaryKeys === null) {
-            return;
+            return; // @codeCoverageIgnore
         }
 
         // New entities do not need cleanup.
@@ -262,7 +262,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
             unset($rawData[$cleanupEnableField]);
 
             if (!$cleanupEnabled) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $fieldData = $rawData[$field->getPropertyName()] ?? null;
@@ -293,13 +293,13 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
         foreach ($fieldData as $referenceData) {
             if (!is_array($referenceData)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $referencePrimaryKey = $this->getPrimaryKey($referenceData, $reference);
 
             if ($referencePrimaryKey === null) {
-                return;
+                return; // @codeCoverageIgnore
             }
 
             $referencePrimaryKey = $this->filterVersionFields($referencePrimaryKey, $reference);

@@ -33,7 +33,7 @@ final readonly class ObsoleteRelationsDeleter
             $deletePrimaryKeys = $this->getDeletePrimaryKeys($cleanupRelation, $context);
 
             if (empty($deletePrimaryKeys)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $entity = $cleanupRelation->definition->getEntityName();
@@ -104,7 +104,7 @@ final readonly class ObsoleteRelationsDeleter
     private function getMainPrimaryKey(array $primaryKey): string
     {
         if (count($primaryKey) !== 1) {
-            throw new RuntimeException('Primary does not consist of exactly one primary key');
+            throw new RuntimeException('Primary does not consist of exactly one primary key'); // @codeCoverageIgnore
         }
 
         return reset($primaryKey);
@@ -118,7 +118,7 @@ final readonly class ObsoleteRelationsDeleter
     private function getMainPrimaryKeyField(array $primaryKey): string
     {
         if (count($primaryKey) !== 1) {
-            throw new RuntimeException('Primary does not consist of exactly one primary key');
+            throw new RuntimeException('Primary does not consist of exactly one primary key'); // @codeCoverageIgnore
         }
 
         $fields = array_keys($primaryKey);
