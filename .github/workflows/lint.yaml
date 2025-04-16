@@ -49,5 +49,6 @@ jobs:
               with:
                   node-version: 22
                   cache: 'npm'
+            - run: npm ci
             - name: Run Prettier
               run: composer run lint-prettier

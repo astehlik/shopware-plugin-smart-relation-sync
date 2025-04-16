@@ -21,9 +21,6 @@ jobs:
                     - 3306
                 options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-        env:
-            DATABASE_URL: 'mysql://root:root@127.0.0.1/shopware'
-
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -33,6 +30,8 @@ jobs:
 
             - name: Run tests
               run: composer run phpunit-report
+              env:
+                  DATABASE_URL: 'mysql://root:root@127.0.0.1/shopware'
 
             - name: Upload test results
               if: success() || failure() # always run even if the previous step fails
