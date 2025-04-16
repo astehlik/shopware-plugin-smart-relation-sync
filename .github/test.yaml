@@ -1,0 +1,53 @@
+name: Test
+
+on:
+    workflow_call:
+
+concurrency:
+    group: ${{ github.ref }}-test
+    cancel-in-progress: true
+
+jobs:
+    phpunit:
+        runs-on: ubuntu-latest
+
+        services:
+            mysql:
+                image: mysql:8-oracle
+                env:
+                    MYSQL_DATABASE: shopware
+                    MYSQL_ROOT_PASSWORD: root
+                ports:
+                    - 3306
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+        env:
+            DATABASE_URL: 'mysql://root:root@127.0.0.1/shopware'
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+              with:
+                  additional-extensions: ',pcov'
+
+            - name: Run tests
+              run: composer run phpunit-report
+
+            - name: Upload test results
+              if: success() || failure() # always run even if the previous step fails
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results
+                  path: ./public/tests
+                  retention-days: 1
+
+            - name: Monitor test coverage
+              uses: slavcodev/coverage-monitor-action@v1
+              if: success() || failure() # always run even if the previous step fails
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  coverage_path: 'reports/coverage.clover.xml'
+                  threshold_alert: 95
+                  threshold_warning: 99
+                  threshold_metric: 'lines'

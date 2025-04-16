@@ -1,0 +1,53 @@
+name: Linting
+
+on:
+    workflow_call:
+
+concurrency:
+    group: ${{ github.ref }}-lint
+    cancel-in-progress: true
+
+jobs:
+    composer:
+        name: Composer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+            - name: Run PHP-CS-Fixer
+              run: composer run lint-composer
+
+    php-cs-fixer:
+        name: PHP-CS-Fixer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+            - name: Run PHP-CS-Fixer
+              run: composer run lint-php-cs-fixer
+
+    phpstan:
+        name: PHPStan
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+            - name: Run PHP-CS-Fixer
+              run: composer run lint-phpstan
+
+    prettier:
+        name: Prettier
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: 'npm'
+            - name: Run Prettier
+              run: composer run lint-prettier
