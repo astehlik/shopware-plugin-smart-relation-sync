@@ -12,18 +12,23 @@ use Shopware\Core\Content\Test\Product\ProductBuilder;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\Test\TestCaseBase\AdminFunctionalTestBehaviour;
+use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Test\Stub\Framework\IdsCollection;
 
-final class EntityWriteSubscriberTest extends TestCase
+abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 {
-    use AdminFunctionalTestBehaviour;
+    use IntegrationTestBehaviour;
 
     private const string PRODUCT_NUMBER = 'P384584';
 
-    private Context $context;
+    protected Context $context;
 
     private IdsCollection $ids;
+
+    /**
+     * @param array<non-empty-string, mixed> $payload
+     */
+    abstract protected function upsertProduct(array $payload): void;
 
     protected function setUp(): void
     {
@@ -148,28 +153,6 @@ final class EntityWriteSubscriberTest extends TestCase
         self::assertInstanceOf(ProductEntity::class, $product);
 
         return $product;
-    }
-
-    /**
-     * @param array<mixed> $payload
-     */
-    private function upsertProduct(array $payload): void
-    {
-        $this->getBrowser()->jsonRequest(
-            'POST',
-            '/api/_action/sync',
-            [
-                'write-product' => [
-                    'entity' => 'product',
-                    'action' => 'upsert',
-                    'payload' => [$payload],
-                ],
-            ],
-        );
-
-        $response = $this->getBrowser()->getResponse();
-
-        self::assertSame(200, $response->getStatusCode(), $response->getContent() ?: '');
     }
 
     /**
