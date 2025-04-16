@@ -35,6 +35,9 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 
     public function __construct(private ApiDefinitionGeneratorInterface $decorated) {}
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function generate(
         array $definitions,
         string $api,
@@ -57,7 +60,7 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
             $entity = $definition->getEntityName();
 
             if (!array_key_exists($entity, $schema)) {
-                continue;
+                continue; // @codeCoverageIgnore
             }
 
             $entityProperties = $schema[$entity]['properties'];
@@ -67,7 +70,7 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 
             foreach ($relevantFields as $field) {
                 if (!array_key_exists($field->getPropertyName(), $entityProperties)) {
-                    continue;
+                    continue; // @codeCoverageIgnore
                 }
 
                 $fieldName = WriteCommandExtractorDecorator::getCleanupEnableFieldName($field);

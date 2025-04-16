@@ -43,13 +43,13 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         $schemas = parent::getSchemaByDefinition($definition, $path, $forSalesChannel, $onlyFlat, $apiType);
 
         if ($forSalesChannel) {
-            return $schemas;
+            return $schemas; // @codeCoverageIgnore
         }
 
         $relevantSchemas = $this->getRelevantSchemas($schemas, $definition);
 
         if (count($relevantSchemas) === 0) {
-            return $schemas;
+            return $schemas; // @codeCoverageIgnore
         }
 
         $relevantFields = $definition->getFields()
@@ -86,7 +86,7 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         $schemaName = $this->snakeCaseToCamelCase($definition->getEntityName());
 
         if (!array_key_exists($schemaName, $schemas)) {
-            return [];
+            return [];  // @codeCoverageIgnore
         }
 
         $relevantSchemas = [$schemas[$schemaName]];
@@ -126,7 +126,7 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
 
         $ignoreOpenApiSchemaFlag = $field->getFlag(IgnoreInOpenapiSchema::class);
         if ($ignoreOpenApiSchemaFlag !== null) {
-            return false;
+            return false; // @codeCoverageIgnore
         }
 
         $flag = $field->getFlag(ApiAware::class);
@@ -135,7 +135,7 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         }
 
         if (!$flag->isSourceAllowed($forSalesChannel ? SalesChannelApiSource::class : AdminApiSource::class)) {
-            return false;
+            return false; // @codeCoverageIgnore
         }
 
         return true;

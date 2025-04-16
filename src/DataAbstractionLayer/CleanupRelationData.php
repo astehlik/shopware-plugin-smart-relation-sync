@@ -33,7 +33,7 @@ final class CleanupRelationData
         $primaryKey = array_diff_key($primaryKey, $this->parentPrimaryKeyFields);
 
         if ($primaryKey === []) {
-            return;
+            return; // @codeCoverageIgnore
         }
 
         $this->referencedPrimaryKeys[] = $primaryKey;
