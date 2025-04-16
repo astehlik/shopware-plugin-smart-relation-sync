@@ -6,6 +6,8 @@
 /config/secrets/prod/prod.decrypt.private.php
 /node_modules
 /public/bundles/
+/public/tests/
+/reports/
 /var/
 /vendor/
 /composer.lock
