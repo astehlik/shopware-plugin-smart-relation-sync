@@ -1,0 +1,22 @@
+name: Pull Requests
+
+on:
+    pull_request:
+
+jobs:
+    lint-code:
+        name: Lint
+        permissions:
+            contents: read
+            packages: read
+        uses: ./.github/workflows/lint.yaml
+
+    test:
+        name: Test
+        permissions:
+            contents: read
+            checks: write
+            pull-requests: write
+            statuses: write
+        uses: ./.github/workflows/test.yaml
+        secrets: inherit

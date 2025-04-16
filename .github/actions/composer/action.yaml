@@ -1,0 +1,41 @@
+name: 'Setup PHP'
+
+description: 'Setup PHP and install Composer dependencies'
+
+inputs:
+    additional-extensions:
+        description: 'Install additionall PHP extensions (must start with a comma!)'
+        required: false
+        default: ''
+    composer-install:
+        description: 'Install Composer dependencies'
+        required: false
+        default: 'true'
+
+runs:
+    using: 'composite'
+
+    steps:
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+              php-version: 8.3
+              # Based on output of composer check-platform-reqs command.
+              extensions: ctype,curl,dom,fileinfo,filter,gd,hash,iconv,intl,json,libxml,mbstring,openssl,pcre,pdo,pdo_mysql,phar,reflection,session,simplexml,sodium,tokenizer,xml,xmlwriter,zip,zlib${{ inputs.additional-extensions }}
+
+        - name: Get composer cache directory
+          id: composer-cache
+          shell: bash
+          run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+        - name: Cache dependencies
+          uses: actions/cache@v4
+          with:
+              path: ${{ steps.composer-cache.outputs.dir }}
+              key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+              restore-keys: ${{ runner.os }}-composer-
+
+        - name: Install dependencies
+          if: ${{ inputs.composer-install == 'true' }}
+          shell: bash
+          run: composer install --prefer-dist
