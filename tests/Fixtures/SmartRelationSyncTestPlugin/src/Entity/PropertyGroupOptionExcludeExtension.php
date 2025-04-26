@@ -24,13 +24,12 @@ class PropertyGroupOptionExcludeExtension extends EntityExtension
                 PropertyGroupOptionExcludeDefinition::class,
                 'property_group_option_id',
                 'property_group_option_exclude_id',
-            )
-            )->addFlags(new ApiAware(), new CascadeDelete()),
+            ))->addFlags(new ApiAware(), new CascadeDelete()),
         );
     }
 
-    public function getDefinitionClass(): string
+    public function getEntityName(): string
     {
-        return PropertyGroupOptionDefinition::class;
+        return PropertyGroupOptionDefinition::ENTITY_NAME;
     }
 }

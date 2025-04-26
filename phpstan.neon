@@ -6,7 +6,6 @@ includes:
     - vendor/shopware/core/DevOps/StaticAnalyze/PHPStan/rules.neon
     # Based on vendor/shopware/core/DevOps/StaticAnalyze/PHPStan/core-rules.neon
     - tests/StaticAnalyze/PHPStan/phpstan-shopware-core-rules.neon
-    - tests/StaticAnalyze/PHPStan/phpstan-baseline.neon
 
 parameters:
     level: 9
