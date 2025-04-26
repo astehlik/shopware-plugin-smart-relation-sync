@@ -17,7 +17,7 @@ use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 
-return [
+$bundles = [
     FrameworkBundle::class => ['all' => true],
     Framework::class => ['all' => true],
     System::class => ['all' => true],
@@ -31,3 +31,10 @@ return [
     DebugBundle::class => ['dev' => true],
     WebProfilerBundle::class => ['dev' => true, 'test' => true],
 ];
+
+// Workaround for https://github.com/shopware/shopware/issues/8855
+if (class_exists('Shopware\\Administration\\Administration')) {
+    $bundles['Shopware\\Administration\\Administration'] = ['all' => true];
+}
+
+return $bundles;
