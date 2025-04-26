@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Functional\DataAbstractionLayer;
+namespace Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer;
 
 use Shopware\Core\Framework\Test\TestCaseBase\AdminApiTestBehaviour;
-use Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer\AbstractEntityWriteSubscriberTestCase;
 
 class EntityWriteSubscriberApiTest extends AbstractEntityWriteSubscriberTestCase
 {

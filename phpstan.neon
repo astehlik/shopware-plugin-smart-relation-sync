@@ -31,7 +31,7 @@ parameters:
 
 services:
     - # register the class, so we can decorate it, but don't tag it as a rule, so only our decorator is used by PHPStan
-        class: Symplify\PHPStanRules\Rules\NoReturnSetterMethodRule
+      class: Symplify\PHPStanRules\Rules\NoReturnSetterMethodRule
 
 rules:
     # rules from https://github.com/symplify/phpstan-rules

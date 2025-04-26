@@ -1,2 +1,11 @@
 parameters:
-	ignoreErrors: []
+    ignoreErrors:
+        - message: '#^Class Swh\\SmartRelationSync\\Tests\\Compatibility\\IdsCollection extends @final class Shopware\\Core\\Test\\Stub\\Framework\\IdsCollection\.$#'
+          identifier: class.extendsFinalByPhpDoc
+          count: 1
+          path: ../../Compatibility/IdsCollection.php
+
+        - message: '#^Multiple class/interface/trait is not allowed in single file$#'
+          identifier: symplify.multipleClassLikeInFile
+          count: 1
+          path: ../../Compatibility/IdsCollection.php

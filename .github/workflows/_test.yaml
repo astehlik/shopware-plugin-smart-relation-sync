@@ -21,12 +21,31 @@ jobs:
                     - 3306:3306
                 options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+        strategy:
+            matrix:
+                composer-command:
+                    - install
+                    - require shopware/core:~6.6.10.0
+                    - require shopware/core:~6.6.9.0
+                    - require shopware/core:~6.6.8.0
+                    - require shopware/core:~6.6.7.0
+                    #- require shopware/core:~6.6.6.0
+                    #- require shopware/core:~6.6.5.0
+                    #- require shopware/core:~6.6.4.0
+                    #- require shopware/core:~6.6.3.0
+                    #- require shopware/core:~6.6.2.0
+                    #- require shopware/core:~6.6.1.0
+                    #- require shopware/core:~6.6.0.0
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
             - uses: ./.github/actions/composer
               with:
+                  composer-install: false
                   additional-extensions: ',pcov'
+
+            - run: composer ${{ matrix.composer-command }}
 
             - run: cp .env.ci .env.test.local
 
@@ -34,7 +53,7 @@ jobs:
               run: composer run phpunit-report
 
             - name: Upload test results
-              if: success() || failure() # always run even if the previous step fails
+              if: ${{ matrix.composer-command == 'install' }}
               uses: actions/upload-artifact@v4
               with:
                   name: test-results
@@ -43,7 +62,7 @@ jobs:
 
             - name: Monitor test coverage
               uses: slavcodev/coverage-monitor-action@v1
-              if: success() || failure() # always run even if the previous step fails
+              if: ${{ matrix.composer-command == 'install' }}
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   coverage_path: 'reports/coverage.clover.xml'

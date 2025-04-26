@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Functional\DataAbstractionLayer;
-
-use Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer\AbstractEntityWriteSubscriberTestCase;
+namespace Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer;
 
 class EntityWriteSubscriberDalTest extends AbstractEntityWriteSubscriberTestCase
 {
