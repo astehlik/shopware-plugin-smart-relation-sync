@@ -4,7 +4,7 @@
     "license": "MIT",
     "type": "shopware-platform-plugin",
     "require": {
-        "shopware/core": "~6.6.7"
+        "shopware/core": "~6.6.4"
     },
     "require-dev": {
         "de-swebhosting/php-codestyle": "^5.4",
