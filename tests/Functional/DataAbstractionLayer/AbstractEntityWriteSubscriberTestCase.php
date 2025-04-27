@@ -13,7 +13,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
-use Shopware\Core\Test\Stub\Framework\IdsCollection;
+use Swh\SmartRelationSync\Tests\Compatibility\IdsCollection;
 
 abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 {
