@@ -6,6 +6,7 @@ namespace Swh\SmartRelationSync\ApiDefinition;
 
 use OpenApi\Annotations\Property;
 use OpenApi\Annotations\Schema;
+use RuntimeException;
 use Shopware\Core\Framework\Api\ApiDefinition\DefinitionService;
 use Shopware\Core\Framework\Api\ApiDefinition\Generator\OpenApi\OpenApiDefinitionSchemaBuilder;
 use Shopware\Core\Framework\Api\Context\AdminApiSource;
@@ -13,10 +14,10 @@ use Shopware\Core\Framework\Api\Context\SalesChannelApiSource;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Field;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Flag\ApiAware;
+use Shopware\Core\Framework\DataAbstractionLayer\Field\Flag\Extension;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Flag\IgnoreInOpenapiSchema;
-use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
-use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
 use Swh\SmartRelationSync\DataAbstractionLayer\WriteCommandExtractorDecorator;
+use Swh\SmartRelationSync\ValueObject\RelevantField;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBuilder
@@ -53,7 +54,7 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         }
 
         $relevantFields = $definition->getFields()
-            ->filter(fn(Field $field) => $this->isRelevantField($field));
+            ->filter(static fn(Field $field) => RelevantField::isRelevant($field));
 
         foreach ($relevantFields as $field) {
             if (!$this->shouldFieldBeIncluded($field, $forSalesChannel)) {
@@ -68,12 +69,46 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
                 'writeOnly' => true,
             ]);
 
-            foreach ($relevantSchemas as $schema) {
-                $schema->properties[] = $property;
-            }
+            match ($field->is(Extension::class)) {
+                true => $this->addExtensionToSchemas($relevantSchemas, $property),
+                false => $this->addPropertyToSchemas($relevantSchemas, $property),
+            };
         }
 
         return $schemas;
+    }
+
+    /**
+     * @param Schema[] $schemas
+     */
+    private function addExtensionToSchemas(array $schemas, Property $property): void
+    {
+        foreach ($schemas as $schema) {
+            $extensionSchema = $this->getExtensionSchema($schema);
+
+            $extensionSchema->properties[] = $property;
+        }
+    }
+
+    /**
+     * @param Schema[] $schemas
+     */
+    private function addPropertyToSchemas(array $schemas, Property $property): void
+    {
+        foreach ($schemas as $schema) {
+            $schema->properties[] = $property;
+        }
+    }
+
+    private function getExtensionSchema(Schema $schema): Schema
+    {
+        foreach ($schema->properties as $property) {
+            if ($property->property === 'extensions') {
+                return $property;
+            }
+        }
+
+        throw new RuntimeException('extensions property not found');
     }
 
     /**
@@ -106,14 +141,6 @@ class OpenApiDefinitionSchemaBuilderDecorator extends OpenApiDefinitionSchemaBui
         }
 
         return $relevantSchemas;
-    }
-
-    /**
-     * @phpstan-assert-if-true ManyToManyAssociationField|OneToManyAssociationField $field
-     */
-    private function isRelevantField(Field $field): bool
-    {
-        return WriteCommandExtractorDecorator::isRelevantField($field);
     }
 
     private function shouldFieldBeIncluded(Field $field, bool $forSalesChannel): bool

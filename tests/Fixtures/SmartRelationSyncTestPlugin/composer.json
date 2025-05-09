@@ -1,0 +1,19 @@
+{
+    "name": "de-swebhosting-shopware-plugin/smart-relation-sync-test-plugin",
+    "description": "SmartRelationSync plugin test plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "type": "shopware-platform-plugin",
+    "autoload": {
+        "psr-4": {
+            "Swh\\SmartRelationSyncTestPlugin\\": "src/"
+        }
+    },
+    "extra": {
+        "label": {
+            "de-DE": "SmartRelationSync Test",
+            "en-GB": "SmartRelationSync Test"
+        },
+        "shopware-plugin-class": "Swh\\SmartRelationSyncTestPlugin\\SmartRelationSyncTestPlugin"
+    }
+}

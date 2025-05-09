@@ -31,9 +31,16 @@ final class EntitySchemaGeneratorDecoratorTest extends TestCase
         $json = json_decode($json, true);
 
         self::assertIsArray($json);
+
         self::assertIsArray($json['product']);
         self::assertIsArray($json['product']['properties']);
         self::assertIsArray($json['product']['properties']['categoriesCleanupRelations']);
         self::assertSame('boolean', $json['product']['properties']['categoriesCleanupRelations']['type']);
+
+        self::assertIsArray($json['property_group_option']);
+        self::assertIsArray($json['property_group_option']['properties']);
+        self::assertIsArray($json['property_group_option']['properties']['excludedOptions']);
+        self::assertIsArray($json['property_group_option']['properties']['excludedOptionsCleanupRelations']);
+        self::assertSame('boolean', $json['property_group_option']['properties']['excludedOptionsCleanupRelations']['type']);
     }
 }

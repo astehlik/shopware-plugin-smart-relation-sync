@@ -10,14 +10,14 @@ class EntityWriteSubscriberApiTest extends AbstractEntityWriteSubscriberTestCase
 {
     use AdminApiTestBehaviour;
 
-    protected function upsertProduct(array $payload): void
+    protected function upsertEntity(string $entity, array $payload): void
     {
         $this->getBrowser()->jsonRequest(
             'POST',
             '/api/_action/sync',
             [
                 'write-product' => [
-                    'entity' => 'product',
+                    'entity' => $entity,
                     'action' => 'upsert',
                     'payload' => [$payload],
                 ],
