@@ -11,10 +11,9 @@ use Shopware\Core\Framework\Api\ApiDefinition\Generator\EntitySchemaGenerator;
 use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Field;
-use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
-use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelDefinitionInterface;
 use Swh\SmartRelationSync\DataAbstractionLayer\WriteCommandExtractorDecorator;
+use Swh\SmartRelationSync\ValueObject\RelevantField;
 
 /**
  * @internal
@@ -66,7 +65,7 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
             $entityProperties = $schema[$entity]['properties'];
 
             $relevantFields = $definition->getFields()
-                ->filter(fn(Field $field) => $this->isRelevantField($field));
+                ->filter(static fn(Field $field) => RelevantField::isRelevant($field));
 
             foreach ($relevantFields as $field) {
                 if (!array_key_exists($field->getPropertyName(), $entityProperties)) {
@@ -87,13 +86,5 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
     public function supports(string $format, string $api): bool
     {
         return $this->decorated->supports($format, $api);
-    }
-
-    /**
-     * @phpstan-assert-if-true ManyToManyAssociationField|OneToManyAssociationField $field
-     */
-    private function isRelevantField(Field $field): bool
-    {
-        return WriteCommandExtractorDecorator::isRelevantField($field);
     }
 }

@@ -9,6 +9,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\CompiledFieldCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\Field;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
+use Shopware\Core\Framework\DataAbstractionLayer\Field\Flag\Extension;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToManyAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
@@ -17,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\VersionField;
 use Shopware\Core\Framework\DataAbstractionLayer\Version\VersionDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteCommandExtractor;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteParameterBag;
+use Swh\SmartRelationSync\ValueObject\RelevantField;
 
 final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 {
@@ -29,15 +31,6 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
     public static function getCleanupEnableFieldName(Field $field): string
     {
         return sprintf('%sCleanupRelations', $field->getPropertyName());
-    }
-
-    /**
-     * @phpstan-assert-if-true ManyToManyAssociationField|OneToManyAssociationField $field
-     */
-    public static function isRelevantField(Field $field): bool
-    {
-        return $field instanceof ManyToManyAssociationField
-            || $field instanceof OneToManyAssociationField;
     }
 
     /**
@@ -228,6 +221,65 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
 
     /**
      * @param array<mixed, mixed> $rawData
+     *
+     * @return array<mixed, mixed>
+     */
+    private function getRelevantRawData(Field $field, array $rawData): array
+    {
+        if (!$field->is(Extension::class)) {
+            return $rawData;
+        }
+
+        $propertyName = $field->getPropertyName();
+
+        if (isset($rawData[$propertyName])) {
+            return $rawData;
+        }
+
+        if (
+            !isset($rawData['extensions'])
+            || !is_array($rawData['extensions'])
+            || !isset($rawData['extensions'][$propertyName])) {
+            return $rawData;
+        }
+
+        return $rawData['extensions'];
+    }
+
+    /**
+     * @param array<mixed, mixed> $rawData
+     */
+    private function registerFieldForCleanup(
+        RelevantField $relevantField,
+        array $rawData,
+    ): void {
+        $field = $relevantField->field;
+
+        $fieldData = $rawData[$field->getPropertyName()] ?? null;
+
+        if (!is_array($fieldData)) {
+            return;
+        }
+
+        $cleanupEnableField = $this->getCleanupEnableFieldName($field);
+
+        if (!array_key_exists($cleanupEnableField, $rawData)) {
+            return;
+        }
+
+        $cleanupEnabled = is_bool($rawData[$cleanupEnableField]) && $rawData[$cleanupEnableField];
+
+        unset($rawData[$cleanupEnableField]);
+
+        if (!$cleanupEnabled) {
+            return;
+        }
+
+        $this->registerRelationsForField($relevantField, $fieldData);
+    }
+
+    /**
+     * @param array<mixed, mixed> $rawData
      */
     private function registerRelations(array $rawData, WriteParameterBag $parameters): void
     {
@@ -247,43 +299,28 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
         $primaryKeys = $this->filterVersionFields($primaryKeys, $definition);
 
         foreach ($definition->getFields() as $field) {
-            if (!self::isRelevantField($field)) {
+            $relevantField = RelevantField::create($field, $primaryKeys);
+
+            if ($relevantField === null) {
                 continue;
             }
 
-            $cleanupEnableField = $this->getCleanupEnableFieldName($field);
+            $rawData = $this->getRelevantRawData($field, $rawData);
 
-            if (!array_key_exists($cleanupEnableField, $rawData)) {
-                continue;
-            }
-
-            $cleanupEnabled = is_bool($rawData[$cleanupEnableField]) && $rawData[$cleanupEnableField];
-
-            unset($rawData[$cleanupEnableField]);
-
-            if (!$cleanupEnabled) {
-                continue; // @codeCoverageIgnore
-            }
-
-            $fieldData = $rawData[$field->getPropertyName()] ?? null;
-
-            if (!is_array($fieldData)) {
-                continue;
-            }
-
-            $this->registerRelationsForField($field, $primaryKeys, $fieldData);
+            $this->registerFieldForCleanup($relevantField, $rawData);
         }
     }
 
     /**
-     * @param non-empty-array<non-empty-string, non-empty-string> $parentPrimaryKey
      * @param array<mixed, mixed> $fieldData
      */
     private function registerRelationsForField(
-        ManyToManyAssociationField|OneToManyAssociationField $field,
-        array $parentPrimaryKey,
+        RelevantField $relevantField,
         array $fieldData,
     ): void {
+        $field = $relevantField->field;
+        $parentPrimaryKey = $relevantField->parentPrimaryKey;
+
         $reference = $field->getReferenceDefinition();
 
         $cleanupRelationData = match ($field instanceof OneToManyAssociationField) {
