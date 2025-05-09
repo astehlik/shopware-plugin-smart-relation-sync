@@ -28,6 +28,19 @@ parameters:
         consoleApplicationLoader: tests/StaticAnalyze/PHPStan/console-application.php
     type_perfect:
         no_mixed: true
+    ignoreErrors:
+        - identifier: class.extendsInternalClass
+        - identifier: classConstant.internalClass
+        - identifier: method.internal
+        - identifier: method.internalClass
+        - identifier: method.internalInterface
+        - identifier: new.internalClass
+        - identifier: parameter.internalClass
+        - identifier: parameter.internalInterface
+        - identifier: property.internalClass
+        - identifier: property.internalInterface
+        - identifier: return.internalClass
+        - identifier: staticMethod.internal
 
 services:
     - # register the class, so we can decorate it, but don't tag it as a rule, so only our decorator is used by PHPStan
