@@ -25,17 +25,6 @@ jobs:
             matrix:
                 composer-command:
                     - install
-                    - require shopware/core:~6.6.10.0
-                    - require shopware/core:~6.6.9.0
-                    - require shopware/core:~6.6.8.0
-                    - require shopware/core:~6.6.7.0
-                    - require shopware/core:~6.6.6.0
-                    - require shopware/core:~6.6.5.0
-                    - require shopware/core:~6.6.4.0
-                    #- require shopware/core:~6.6.3.0
-                    #- require shopware/core:~6.6.2.0
-                    #- require shopware/core:~6.6.1.0
-                    #- require shopware/core:~6.6.0.0
 
         steps:
             - name: Checkout repository

@@ -17,7 +17,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
-use Swh\SmartRelationSync\Tests\Compatibility\IdsCollection;
+use Shopware\Core\Test\Stub\Framework\IdsCollection;
 
 abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 {

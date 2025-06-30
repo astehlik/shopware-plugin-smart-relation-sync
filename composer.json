@@ -4,18 +4,18 @@
     "license": "MIT",
     "type": "shopware-platform-plugin",
     "require": {
-        "shopware/core": "~6.6.4"
+        "shopware/core": "~6.7.0"
     },
     "require-dev": {
         "de-swebhosting-shopware-plugin/smart-relation-sync-test-plugin": "1.0.0",
         "de-swebhosting/php-codestyle": "^5.4",
         "ergebnis/composer-normalize": "^2.45",
-        "friendsofphp/php-cs-fixer": "^3.66",
+        "friendsofphp/php-cs-fixer": "^3.71",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-symfony": "^2.0",
-        "phpunit/phpunit": "^11.0 || ^12.0",
+        "phpunit/phpunit": "^12.0",
         "rector/type-perfect": "^2.0",
         "shopware/dev-tools": "^1.5",
         "symplify/phpstan-rules": "^14.4"
