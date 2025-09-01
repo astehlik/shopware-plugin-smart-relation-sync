@@ -56,7 +56,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 
     protected function setUp(): void
     {
-        $this->context = Context::createDefaultContext();
+        $this->context = Context::createCLIContext();
         $this->ids = new IdsCollection();
     }
 
