@@ -93,7 +93,7 @@ final readonly class ObsoleteRelationsDeleter
                 $this->getMainPrimaryKey($cleanupRelation->parentPrimaryKey),
             ),
         );
-        $criteria->addFilter(new NotFilter(MultiFilter::CONNECTION_AND, $existingIdFilters));
+        $criteria->addFilter(new NotFilter(MultiFilter::CONNECTION_OR, $existingIdFilters));
 
         return $repository->searchIds($criteria, $context)->getIds();
     }
