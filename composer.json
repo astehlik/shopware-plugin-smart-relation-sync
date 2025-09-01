@@ -92,7 +92,7 @@
         "phpunit": "@php vendor/bin/phpunit",
         "phpunit-html": [
             "rm public/tests -rf",
-            "@php vendor/bin/phpunit --coverage-html public/tests"
+            "@php -dextension=pcov.so -dpcov.enabled=1 vendor/bin/phpunit --coverage-html public/tests"
         ],
         "phpunit-report": "@php -dpcov.enabled=1 vendor/bin/phpunit --coverage-html public/tests --coverage-clover reports/coverage.clover.xml --coverage-text --colors=always --testdox"
     }
