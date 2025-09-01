@@ -65,6 +65,7 @@
         },
         "lint": [
             "@lint-composer",
+            "@lint-php",
             "@lint-php-cs-fixer",
             "@lint-phpstan",
             "@lint-prettier"
@@ -76,6 +77,7 @@
             "@lint-php-cs-fixer-fix",
             "@lint-prettier-fix"
         ],
+        "lint-php": "failed=1; find . -name \"*.php\" -not -path \"./vendor/*\" -not -path \"./var/*\" -exec php -l \"{}\" \\; 2>&1 | grep \"PHP Parse error\" || failed=0; test \"$failed\" -eq \"0\"",
         "lint-php-cs-fixer": "vendor/bin/php-cs-fixer fix --diff --dry-run",
         "lint-php-cs-fixer-fix": "vendor/bin/php-cs-fixer fix",
         "lint-phpstan": [

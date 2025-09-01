@@ -14,7 +14,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\MappingEntityDefinition;
 
 class PropertyGroupOptionExcludeDefinition extends MappingEntityDefinition
 {
-    final public const string ENTITY_NAME = 'property_group_option_exclude';
+    final public const ENTITY_NAME = 'property_group_option_exclude';
 
     public function getEntityName(): string
     {
