@@ -22,7 +22,7 @@ use Swh\SmartRelationSync\ValueObject\RelevantField;
  */
 final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
 {
-    private const array CLEANUP_PROPERTY_DEFINITION = [
+    private const CLEANUP_PROPERTY_DEFINITION = [
         'type' => 'boolean',
         'flags' => [
             // Reading is never allowed, the field is not returned by the API

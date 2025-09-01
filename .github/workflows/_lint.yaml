@@ -18,6 +18,18 @@ jobs:
             - name: Run PHP-CS-Fixer
               run: composer run lint-composer
 
+    lint-php:
+        name: Lint PHP
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - uses: ./.github/actions/composer
+              with:
+                  composer-install: 'false'
+            - name: Run PHP-CS-Fixer
+              run: composer run lint-php
+
     php-cs-fixer:
         name: PHP-CS-Fixer
         runs-on: ubuntu-latest
@@ -45,6 +57,8 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
             - uses: ./.github/actions/composer
+              with:
+                  composer-install: 'false'
             - uses: actions/setup-node@v4
               with:
                   node-version: 22

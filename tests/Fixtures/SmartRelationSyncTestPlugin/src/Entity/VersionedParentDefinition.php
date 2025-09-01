@@ -18,7 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
 
 class VersionedParentDefinition extends EntityDefinition
 {
-    final public const string ENTITY_NAME = 'versioned_parent';
+    final public const ENTITY_NAME = 'versioned_parent';
 
     public function getCollectionClass(): string
     {

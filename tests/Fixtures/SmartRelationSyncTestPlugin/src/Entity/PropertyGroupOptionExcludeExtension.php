@@ -13,7 +13,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
 
 class PropertyGroupOptionExcludeExtension extends EntityExtension
 {
-    public const string EXTENSION_NAME = 'excludedOptions';
+    public const EXTENSION_NAME = 'excludedOptions';
 
     public function extendFields(FieldCollection $collection): void
     {
