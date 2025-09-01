@@ -32,7 +32,12 @@ final class EntitySchemaGeneratorDecorator extends EntitySchemaGenerator
         ],
     ];
 
-    public function __construct(private ApiDefinitionGeneratorInterface $decorated) {}
+    /**
+     * @codeCoverageIgnore
+     */
+    public function __construct(
+        private readonly ApiDefinitionGeneratorInterface $decorated,
+    ) {}
 
     /**
      * @codeCoverageIgnore

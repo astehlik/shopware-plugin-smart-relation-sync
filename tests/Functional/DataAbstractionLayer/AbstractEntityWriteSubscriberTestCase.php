@@ -41,17 +41,6 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->ids = new IdsCollection();
     }
 
-    /**
-     * @return array<array{0: bool}>
-     */
-    public static function trueFalseDataProvider(): array
-    {
-        return [
-            [true],
-            [false],
-        ];
-    }
-
     public function testSyncManyToMany(): void
     {
         $builder = $this->createProductBuilder()
@@ -69,7 +58,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         self::assertSame($this->ids->get('Test 2'), $categories?->first()?->getId());
     }
 
-    #[DataProvider('trueFalseDataProvider')]
+    #[DataProvider('provideSyncManyToManyExtensionCases')]
     public function testSyncManyToManyExtension(bool $useExtensionsProperty): void
     {
         $excludedOption1 = ['id' => Uuid::randomHex(), 'name' => 'Excluded option 1', 'group' => ['name' => 'Group 1']];
@@ -104,6 +93,17 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         self::assertCount(1, $extension);
 
         self::assertSame($excludedOption2['id'], $extension->first()?->getId());
+    }
+
+    /**
+     * @return array<array{0: bool}>
+     */
+    public static function provideSyncManyToManyExtensionCases(): iterable
+    {
+        return [
+            [true],
+            [false],
+        ];
     }
 
     public function testSyncManyToManyWithEmptyArray(): void

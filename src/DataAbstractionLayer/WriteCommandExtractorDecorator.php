@@ -127,7 +127,7 @@ final class WriteCommandExtractorDecorator extends WriteCommandExtractor
     private function getForeignKeyPropertyNameByStorageName(
         CompiledFieldCollection $fields,
         string $storageName,
-    ) {
+    ): string {
         $fk = $fields->getByStorageName($storageName);
 
         assert(
