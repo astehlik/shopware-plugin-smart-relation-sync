@@ -7,6 +7,7 @@ namespace Swh\SmartRelationSync\Tests\Functional\DataAbstractionLayer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Content\Category\CategoryCollection;
+use Shopware\Core\Content\Product\Aggregate\ProductPrice\ProductPriceCollection;
 use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
@@ -18,12 +19,30 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Swh\SmartRelationSync\Tests\Compatibility\IdsCollection;
+use Swh\SmartRelationSyncTestPlugin\Entity\VersionedChildCollection;
+use Swh\SmartRelationSyncTestPlugin\Entity\VersionedParentCollection;
 
 abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 {
     use IntegrationTestBehaviour;
 
-    private const string PRODUCT_NUMBER = 'P384584';
+    private const PRODUCT_NUMBER = 'P384584';
+
+    private const VERSIONED_PARENT_PAYLOAD = [
+        'id' => 'c56368909789d4f61662603c97687a97',
+        'name' => 'Parent test',
+        'children' => [
+            [
+                'id' => 'a9742e0d21d75726412c3e32cf9c08fa',
+                'name' => 'Child test 1',
+            ],
+            [
+                'id' => '063595fd7ed5d047f29c83214fa967b8',
+                'name' => 'Child test 2',
+            ],
+        ],
+        'childrenCleanupRelations' => true,
+    ];
 
     protected Context $context;
 
@@ -172,6 +191,60 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         self::assertSame($this->ids->get('test2'), $prices?->first()?->getRuleId());
     }
 
+    public function testSyncOneToManyKeepsExisting(): void
+    {
+        $productBuilder = $this->createProductBuilder()
+            ->prices('test', 14.28);
+
+        $this->upsertProductWithRelationCleanup($productBuilder->build());
+
+        $productBuilder = $productBuilder
+            ->prices('test2', 115.0);
+
+        $this->upsertProductWithRelationCleanup($productBuilder->build());
+
+        $criteria = new Criteria([$this->ids->get(self::PRODUCT_NUMBER)]);
+        $criteria->addAssociation('prices');
+
+        $product = $this->searchProductSingle($criteria);
+        $prices = $product->getPrices() ?? new ProductPriceCollection();
+        self::assertCount(2, $prices);
+
+        $price1Id = Uuid::fromStringToHex($this->ids->get('test'));
+        self::assertSame(14.28, $prices->get($price1Id)?->getPrice()->first()?->getGross());
+
+        $price2Id = Uuid::fromStringToHex($this->ids->get('test2'));
+        self::assertSame(115.0, $prices->get($price2Id)?->getPrice()->first()?->getGross());
+    }
+
+    public function testSyncOneToManyWithVersioningKeepsExisting(): void
+    {
+        $this->upsertEntity('versioned_parent', self::VERSIONED_PARENT_PAYLOAD);
+
+        $this->assertVersionedParentChildrenCount(2);
+
+        $this->upsertEntity('versioned_parent', self::VERSIONED_PARENT_PAYLOAD);
+
+        $this->assertVersionedParentChildrenCount(2);
+    }
+
+    public function testSyncOneToManyWithVersioningReplacesEverything(): void
+    {
+        $payload = self::VERSIONED_PARENT_PAYLOAD;
+
+        $this->upsertEntity('versioned_parent', $payload);
+
+        $this->assertVersionedParentChildrenCount(2);
+
+        $newId = Uuid::randomHex();
+
+        $payload['children'][0]['id'] = $newId;
+        $this->upsertEntity('versioned_parent', $payload);
+
+        $children = $this->assertVersionedParentChildrenCount(2);
+        self::assertSame($newId, $children->first()?->getId());
+    }
+
     protected function loadCategories(): ?CategoryCollection
     {
         $criteria = new Criteria([$this->ids->get(self::PRODUCT_NUMBER)]);
@@ -179,6 +252,20 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 
         $product = $this->searchProductSingle($criteria);
         return $product->getCategories();
+    }
+
+    private function assertVersionedParentChildrenCount(int $expectedCount): VersionedChildCollection
+    {
+        $criteria = new Criteria(['c56368909789d4f61662603c97687a97']);
+        $criteria->addAssociation('children');
+
+        $result = $this->getVersionedParentRepository()->search($criteria, $this->context)->first()?->getChildren();
+
+        self::assertInstanceOf(VersionedChildCollection::class, $result);
+
+        self::assertCount($expectedCount, $result);
+
+        return $result;
     }
 
     /**
@@ -238,6 +325,17 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         return $productRepository;
     }
 
+    /**
+     * @return EntityRepository<VersionedParentCollection>
+     */
+    private function getVersionedParentRepository(): EntityRepository
+    {
+        /** @var EntityRepository<VersionedParentCollection> $productRepository */
+        $productRepository = $this->getContainer()->get('versioned_parent.repository');
+        assert($productRepository instanceof EntityRepository);
+        return $productRepository;
+    }
+
     private function searchProductSingle(Criteria $criteria): ProductEntity
     {
         $product = $this->getProductRepository()->search($criteria, $this->context)->first();
@@ -254,6 +352,10 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
     {
         $payload['pricesCleanupRelations'] = true;
         $payload['categoriesCleanupRelations'] = true;
+
+        foreach ($payload['prices'] ?? [] as $key => $price) {
+            $payload['prices'][$key]['id'] = Uuid::fromStringToHex($price['rule']['id']);
+        }
 
         $this->upsertEntity('product', $payload);
     }
