@@ -17,18 +17,7 @@ class OpenApiDefinitionSchemaBuilderDecoratorTest extends TestCase
 {
     use AdminFunctionalTestBehaviour;
 
-    /**
-     * @return non-empty-array<non-empty-string>[]
-     */
-    public static function provideOpenApiTypes(): array
-    {
-        return [
-            [DefinitionService::TYPE_JSON],
-            [DefinitionService::TYPE_JSON_API],
-        ];
-    }
-
-    #[DataProvider('provideOpenApiTypes')]
+    #[DataProvider('provideApiSchemaReturnsExpectedPropertiesCases')]
     public function testApiSchemaReturnsExpectedProperties(string $type): void
     {
         $this->getBrowser()->jsonRequest(
@@ -69,5 +58,16 @@ class OpenApiDefinitionSchemaBuilderDecoratorTest extends TestCase
         self::assertIsArray($extensions['excludedOptions']);
         self::assertIsArray($extensions['excludedOptionsCleanupRelations']);
         self::assertSame('boolean', $extensions['excludedOptionsCleanupRelations']['type']);
+    }
+
+    /**
+     * @return non-empty-array<non-empty-string>[]
+     */
+    public static function provideApiSchemaReturnsExpectedPropertiesCases(): iterable
+    {
+        return [
+            [DefinitionService::TYPE_JSON],
+            [DefinitionService::TYPE_JSON_API],
+        ];
     }
 }

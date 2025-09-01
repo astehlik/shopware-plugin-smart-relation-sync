@@ -19,10 +19,10 @@ final class CleanupRelationData
      * @param array<non-empty-string, true> $relatedPrimaryKeyFields
      */
     public function __construct(
-        readonly public EntityDefinition $definition,
-        readonly public array $parentPrimaryKey,
-        readonly public array $parentPrimaryKeyFields,
-        readonly public array $relatedPrimaryKeyFields,
+        public readonly EntityDefinition $definition,
+        public readonly array $parentPrimaryKey,
+        public readonly array $parentPrimaryKeyFields,
+        public readonly array $relatedPrimaryKeyFields,
     ) {}
 
     /**
