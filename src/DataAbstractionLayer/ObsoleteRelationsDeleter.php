@@ -12,13 +12,13 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriter;
+use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriterInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteContext;
 
 final readonly class ObsoleteRelationsDeleter
 {
     public function __construct(
-        private EntityWriter $entityWriter,
+        private EntityWriterInterface $entityWriter,
         private CleanupRelationsRegistry $registry,
         private DefinitionInstanceRegistry $definitionInstanceRegistry,
     ) {}
