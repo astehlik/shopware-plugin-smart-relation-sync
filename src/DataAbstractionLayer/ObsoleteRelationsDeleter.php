@@ -13,12 +13,15 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriter;
+use Shopware\Core\Framework\DataAbstractionLayer\Write\EntityWriterInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteContext;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class ObsoleteRelationsDeleter
 {
     public function __construct(
-        private EntityWriter $entityWriter,
+        #[Autowire(service: EntityWriter::class)]
+        private EntityWriterInterface $entityWriter,
         private CleanupRelationsRegistry $registry,
         private DefinitionInstanceRegistry $definitionInstanceRegistry,
     ) {}

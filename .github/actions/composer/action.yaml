@@ -4,7 +4,7 @@ description: 'Setup PHP and install Composer dependencies'
 
 inputs:
     additional-extensions:
-        description: 'Install additionall PHP extensions (must start with a comma!)'
+        description: 'Install additional PHP extensions (must start with a comma!)'
         required: false
         default: ''
     composer-install:
