@@ -27,37 +27,37 @@ class OpenApiDefinitionSchemaBuilderDecoratorTest extends TestCase
 
         $response = $this->getBrowser()->getResponse();
 
-        self::assertInstanceOf(JsonResponse::class, $response);
+        $this->assertInstanceOf(JsonResponse::class, $response);
 
         $json = $response->getContent();
 
-        self::assertIsString($json);
-        self::assertNotEmpty($json);
+        $this->assertIsString($json);
+        $this->assertNotEmpty($json);
 
         $json = json_decode($json, true);
 
-        self::assertIsArray($json);
-        self::assertIsArray($json['components']);
-        self::assertIsArray($json['components']['schemas']);
+        $this->assertIsArray($json);
+        $this->assertIsArray($json['components']);
+        $this->assertIsArray($json['components']['schemas']);
 
         $schemas = $json['components']['schemas'];
 
-        self::assertIsArray($schemas['Product']);
-        self::assertIsArray($schemas['Product']['properties']);
-        self::assertIsArray($schemas['Product']['properties']['categoriesCleanupRelations']);
-        self::assertSame('boolean', $schemas['Product']['properties']['categoriesCleanupRelations']['type']);
+        $this->assertIsArray($schemas['Product']);
+        $this->assertIsArray($schemas['Product']['properties']);
+        $this->assertIsArray($schemas['Product']['properties']['categoriesCleanupRelations']);
+        $this->assertSame('boolean', $schemas['Product']['properties']['categoriesCleanupRelations']['type']);
 
-        self::assertIsArray($schemas['PropertyGroupOption']);
-        self::assertIsArray($schemas['PropertyGroupOption']['properties']);
-        self::assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']);
+        $this->assertIsArray($schemas['PropertyGroupOption']);
+        $this->assertIsArray($schemas['PropertyGroupOption']['properties']);
+        $this->assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']);
 
-        self::assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']);
-        self::assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']['properties']);
+        $this->assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']);
+        $this->assertIsArray($schemas['PropertyGroupOption']['properties']['extensions']['properties']);
 
         $extensions = $schemas['PropertyGroupOption']['properties']['extensions']['properties'];
-        self::assertIsArray($extensions['excludedOptions']);
-        self::assertIsArray($extensions['excludedOptionsCleanupRelations']);
-        self::assertSame('boolean', $extensions['excludedOptionsCleanupRelations']['type']);
+        $this->assertIsArray($extensions['excludedOptions']);
+        $this->assertIsArray($extensions['excludedOptionsCleanupRelations']);
+        $this->assertSame('boolean', $extensions['excludedOptionsCleanupRelations']['type']);
     }
 
     /**

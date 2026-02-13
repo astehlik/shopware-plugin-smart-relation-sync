@@ -21,26 +21,26 @@ final class EntitySchemaGeneratorDecoratorTest extends TestCase
 
         $response = $this->getBrowser()->getResponse();
 
-        self::assertInstanceOf(JsonResponse::class, $response);
+        $this->assertInstanceOf(JsonResponse::class, $response);
 
         $json = $response->getContent();
 
-        self::assertIsString($json);
-        self::assertNotEmpty($json);
+        $this->assertIsString($json);
+        $this->assertNotEmpty($json);
 
         $json = json_decode($json, true);
 
-        self::assertIsArray($json);
+        $this->assertIsArray($json);
 
-        self::assertIsArray($json['product']);
-        self::assertIsArray($json['product']['properties']);
-        self::assertIsArray($json['product']['properties']['categoriesCleanupRelations']);
-        self::assertSame('boolean', $json['product']['properties']['categoriesCleanupRelations']['type']);
+        $this->assertIsArray($json['product']);
+        $this->assertIsArray($json['product']['properties']);
+        $this->assertIsArray($json['product']['properties']['categoriesCleanupRelations']);
+        $this->assertSame('boolean', $json['product']['properties']['categoriesCleanupRelations']['type']);
 
-        self::assertIsArray($json['property_group_option']);
-        self::assertIsArray($json['property_group_option']['properties']);
-        self::assertIsArray($json['property_group_option']['properties']['excludedOptions']);
-        self::assertIsArray($json['property_group_option']['properties']['excludedOptionsCleanupRelations']);
-        self::assertSame('boolean', $json['property_group_option']['properties']['excludedOptionsCleanupRelations']['type']);
+        $this->assertIsArray($json['property_group_option']);
+        $this->assertIsArray($json['property_group_option']['properties']);
+        $this->assertIsArray($json['property_group_option']['properties']['excludedOptions']);
+        $this->assertIsArray($json['property_group_option']['properties']['excludedOptionsCleanupRelations']);
+        $this->assertSame('boolean', $json['property_group_option']['properties']['excludedOptionsCleanupRelations']['type']);
     }
 }

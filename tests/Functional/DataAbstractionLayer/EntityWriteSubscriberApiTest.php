@@ -26,6 +26,6 @@ class EntityWriteSubscriberApiTest extends AbstractEntityWriteSubscriberTestCase
 
         $response = $this->getBrowser()->getResponse();
 
-        self::assertSame(200, $response->getStatusCode(), $response->getContent() ?: '');
+        $this->assertSame(200, $response->getStatusCode(), $response->getContent() ?: '');
     }
 }
