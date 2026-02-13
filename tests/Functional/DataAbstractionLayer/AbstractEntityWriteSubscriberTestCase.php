@@ -18,7 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
-use Swh\SmartRelationSync\Tests\Compatibility\IdsCollection;
+use Shopware\Core\Test\Stub\Framework\IdsCollection;
 use Swh\SmartRelationSyncTestPlugin\Entity\VersionedChildCollection;
 use Swh\SmartRelationSyncTestPlugin\Entity\VersionedParentCollection;
 
@@ -73,8 +73,8 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->upsertProductWithRelationCleanup($builder->build());
 
         $categories = $this->loadCategories();
-        self::assertCount(1, $categories ?? []);
-        self::assertSame($this->ids->get('Test 2'), $categories?->first()?->getId());
+        $this->assertCount(1, $categories ?? []);
+        $this->assertSame($this->ids->get('Test 2'), $categories?->first()?->getId());
     }
 
     #[DataProvider('provideSyncManyToManyExtensionCases')]
@@ -105,13 +105,13 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
             ->search($criteria, $this->context)
             ->first();
 
-        self::assertInstanceOf(PropertyGroupOptionEntity::class, $result);
+        $this->assertInstanceOf(PropertyGroupOptionEntity::class, $result);
 
         $extension = $result->getExtension('excludedOptions');
-        self::assertInstanceOf(PropertyGroupOptionCollection::class, $extension);
-        self::assertCount(1, $extension);
+        $this->assertInstanceOf(PropertyGroupOptionCollection::class, $extension);
+        $this->assertCount(1, $extension);
 
-        self::assertSame($excludedOption2['id'], $extension->first()?->getId());
+        $this->assertSame($excludedOption2['id'], $extension->first()?->getId());
     }
 
     /**
@@ -138,7 +138,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->upsertProductWithRelationCleanup($payload);
 
         $categories = $this->loadCategories();
-        self::assertCount(0, $categories ?? []);
+        $this->assertCount(0, $categories ?? []);
     }
 
     public function testSyncManyToManyWithoutCleanup(): void
@@ -154,7 +154,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->upsertEntity('product', $builder->build());
 
         $categories = $this->loadCategories();
-        self::assertCount(2, $categories ?? []);
+        $this->assertCount(2, $categories ?? []);
     }
 
     public function testSyncManyToManyWithoutPayload(): void
@@ -167,7 +167,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->upsertProductWithRelationCleanup($this->createProductBuilder()->build());
 
         $categories = $this->loadCategories();
-        self::assertCount(1, $categories ?? []);
+        $this->assertCount(1, $categories ?? []);
     }
 
     public function testSyncOneToMany(): void
@@ -187,8 +187,8 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 
         $product = $this->searchProductSingle($criteria);
         $prices = $product->getPrices();
-        self::assertCount(1, $prices ?? []);
-        self::assertSame($this->ids->get('test2'), $prices?->first()?->getRuleId());
+        $this->assertCount(1, $prices ?? []);
+        $this->assertSame($this->ids->get('test2'), $prices?->first()?->getRuleId());
     }
 
     public function testSyncOneToManyKeepsExisting(): void
@@ -208,13 +208,13 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 
         $product = $this->searchProductSingle($criteria);
         $prices = $product->getPrices() ?? new ProductPriceCollection();
-        self::assertCount(2, $prices);
+        $this->assertCount(2, $prices);
 
         $price1Id = Uuid::fromStringToHex($this->ids->get('test'));
-        self::assertSame(14.28, $prices->get($price1Id)?->getPrice()->first()?->getGross());
+        $this->assertSame(14.28, $prices->get($price1Id)?->getPrice()->first()?->getGross());
 
         $price2Id = Uuid::fromStringToHex($this->ids->get('test2'));
-        self::assertSame(115.0, $prices->get($price2Id)?->getPrice()->first()?->getGross());
+        $this->assertSame(115.0, $prices->get($price2Id)?->getPrice()->first()?->getGross());
     }
 
     public function testSyncOneToManyWithVersioningKeepsExisting(): void
@@ -242,7 +242,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
         $this->upsertEntity('versioned_parent', $payload);
 
         $children = $this->assertVersionedParentChildrenCount(2);
-        self::assertSame($newId, $children->first()?->getId());
+        $this->assertSame($newId, $children->first()?->getId());
     }
 
     protected function loadCategories(): ?CategoryCollection
@@ -261,9 +261,9 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
 
         $result = $this->getVersionedParentRepository()->search($criteria, $this->context)->first()?->getChildren();
 
-        self::assertInstanceOf(VersionedChildCollection::class, $result);
+        $this->assertInstanceOf(VersionedChildCollection::class, $result);
 
-        self::assertCount($expectedCount, $result);
+        $this->assertCount($expectedCount, $result);
 
         return $result;
     }
@@ -340,7 +340,7 @@ abstract class AbstractEntityWriteSubscriberTestCase extends TestCase
     {
         $product = $this->getProductRepository()->search($criteria, $this->context)->first();
 
-        self::assertInstanceOf(ProductEntity::class, $product);
+        $this->assertInstanceOf(ProductEntity::class, $product);
 
         return $product;
     }
